@@ -1,0 +1,4 @@
+3) let newlines stop/start chains, so we can start from nothing
+4) add 1, 2, 3, ... N pairs to word buffer as well
+5) HTTP server
+6) make HTTP server use jarkov chain to reply to contents
