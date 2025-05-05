@@ -1,3 +1,4 @@
+2) remove leading spaces on initial words
 3) let newlines stop/start chains, so we can start from nothing
 4) add 1, 2, 3, ... N pairs to word buffer as well
 5) HTTP server

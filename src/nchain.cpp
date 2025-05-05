@@ -106,6 +106,9 @@ bool NChain::Train(string filepath) {
     }
     return true;
 }
+bool NChain::HasWord(string word) {
+    return usedWords_.count(word) > 0;
+}
 bool NChain::InitialiseWordBuffer(string input, vector<string>* word_buffer) {
     string start;
     int j = 0;
