@@ -28,7 +28,7 @@ class NChain {
         bool InitialiseWordBuffer(string input, vector<string>* word_buffer);
         Word* PickWord(string target);
         Word* AddWord(string context, string newWord);
-        vector<Word*> words_;
+        //vector<Word*> words_;
         map<string, vector<Word*>> usedWords_;
 };
 

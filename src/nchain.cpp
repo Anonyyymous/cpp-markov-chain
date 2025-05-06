@@ -29,7 +29,8 @@ string concatVector(vector<string> vec) {
         return res;
 
     for(int i = 0; i < vec.size()-1; i++) 
-        res += vec[i] + " ";
+        if(vec[i] != "")
+            res += vec[i] + " ";
     return res + vec[vec.size()-1];
 }
 
@@ -66,7 +67,7 @@ bool NChain::TrainDirectory(string path) {
     return true;
 }
 bool NChain::Train(string filepath) {
-    vector<string> word_buffer(length); // TODO maybe use string[]?
+    vector<string> word_buffer; // TODO maybe use string[]?
     ifstream file(filepath);
 
     if(!file.is_open()) {
@@ -75,33 +76,39 @@ bool NChain::Train(string filepath) {
     }
 
     string text, line;
-    //file.read(te, 10);
+    // vector<string> lines;
     while(getline(file, line)) {
-        //cout << line << endl;
         text += line + " ";
+        //lines.push_back(line);
     }
     file.close();
 
-    Word* lastWord = new Word(""); // empty word, or sentence starter
-
+    //for(string text : lines) {}
     int j = 0;
     for(int i = 0; i < text.length(); i++) {
         if(text[i] == ' ') {
             string word = text.substr(j, i-j);
 
             j = i+1;
-            //cout << word << endl;
-            string context = concatVector(word_buffer);
+
+            if(word_buffer.size() > 0) {
+                string context_so_far = word_buffer[word_buffer.size()-1];
+
+                AddWord(context_so_far, word);
+                //words_.push_back(res);
+                if(debug_)
+                    cout << "trained on '" << context_so_far << "'" << endl;
+                for(int i = word_buffer.size()-2; i >= 0; i--) {
+                    context_so_far = word_buffer[i] + " " + context_so_far;
+                    AddWord(context_so_far, word);
+
+                }
+            }
 
             if(word_buffer.size() >= length)
                 ShiftLeft(&word_buffer);
             
             word_buffer.push_back(word);
-
-            Word* res = AddWord(context, word);
-            words_.push_back(res);
-            lastWord->AddWord(res);
-            lastWord = res;
         }
     }
     return true;
@@ -112,12 +119,14 @@ bool NChain::HasWord(string word) {
 bool NChain::InitialiseWordBuffer(string input, vector<string>* word_buffer) {
     string start;
     int j = 0;
-    if(debug_)
-        cout << "processing input: " << input << endl;
+    //if(debug_)
+    cout << "processing input: '" << input << "'" << endl;
     for(int i = 0; i < input.length(); i++) {
         if(input[i] == ' ') {
             start = input.substr(j, i-j);
             j = i+1;
+            if(!HasWord(start))
+                continue;
             if(word_buffer->size() >= length)
                 ShiftLeft(word_buffer);
 
@@ -129,10 +138,12 @@ bool NChain::InitialiseWordBuffer(string input, vector<string>* word_buffer) {
     }
 
     start = input.substr(j, input.length()-j);
+    if(!HasWord(start))
+        return false; // dont add this to the context
     if(word_buffer->size() >= length)
         ShiftLeft(word_buffer);
     word_buffer->push_back(start);
-    cout << "processing final word: " << start << endl;
+    cout << "processing final word: " << start <<":" << j << ":" << input.length() << endl;
 
     return true;
 }
@@ -149,14 +160,15 @@ Word* NChain::PickWord(string target) {
 }
 string NChain::Regurgitate(string input) {
     vector<string> word_buffer(length);
-    fill(word_buffer.begin(), word_buffer.end(), "");
+    //fill(word_buffer.begin(), word_buffer.end(), "");
     cout << word_buffer.size() << endl;
 
     Word* word; // = used_words[word_buffer[length-1]];
-    string res = input;
+    string res = "";
     //InitialiseWordBuffer(input, &word_buffer);
 
-    InitialiseWordBuffer(input, &word_buffer);
+    if(InitialiseWordBuffer(input, &word_buffer))
+        res = input;
 
     string test = concatVector(word_buffer);
     word = PickWord(test);

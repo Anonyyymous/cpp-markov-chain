@@ -6,5 +6,6 @@
 NChain* ParseChain();
 //bool SaveChain(string filepath, NChain* chain);
 NChain* LoadChain(string filepath);
+int RunTerminalModel(int argc, char** argv);
 
 #endif
