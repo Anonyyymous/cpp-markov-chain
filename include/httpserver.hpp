@@ -1,12 +1,14 @@
-#ifndef ECHOSERVER_H
-#define ECHOSERVER_H
+#ifndef HTTPSERVER_H
+#define HTTPSERVER_H
 
 #include<server.hpp>
+#include<httprequest.hpp>
+#include<httpresponse.hpp>
 
 
-class EchoServer : public Server {
+class HTTPServer : public Server {
     public:
-        EchoServer(int port_) : Server(port_, true) {
+        HTTPServer(int port, HTTPResponse (*consumer)(HTTPRequest)) : Server(port, true), consumer(consumer) {
             std::cout << "initialising echo server" << std::endl;
         }
         int StartServer() {
@@ -30,11 +32,11 @@ class EchoServer : public Server {
             bind(serverSocket, (sockaddr*)&server_address, sizeof(server_address));
         
             std::cout << "listening" << std::endl;
-            listen(serverSocket, 5);
+            listen(serverSocket, 2);
         
         
             for(int i = 0; i < 6; i++) {
-                char buffer[256] = {0};
+                char buffer[4096] = {0};
                 std::cout << "waiting for connections" << std::endl;
                 int client_socket = accept(serverSocket, nullptr, nullptr);
 
@@ -56,7 +58,12 @@ class EchoServer : public Server {
                 }
                 std::cout << "client message: '" << buffer << "', " << sizeof(buffer) << std::endl;
 
-                res = write(client_socket, buffer, sizeof(buffer));
+                HTTPRequest req(buffer);
+                HTTPResponse response = consumer(req);
+                std::cout << std::endl; 
+                
+                std::cout << "replying to client with: '" << response.contents << "'" << std::endl;
+                res = send(client_socket, response.contents.c_str(), response.contents.size(), 0);
 
                 std::cout << "result of sending: " << res << std::endl;
                 if(res < 0) {
@@ -64,7 +71,6 @@ class EchoServer : public Server {
                     close(client_socket);
                     continue;
                 }
-                std::cout << "reply sent (echo)" << std::endl;
 
                 close(client_socket);
                 std::cout << "client closed" << std::endl;
@@ -74,6 +80,8 @@ class EchoServer : public Server {
         
             return 0;
         }
+    private:
+        HTTPResponse (*consumer)(HTTPRequest input);
 };
 
 #endif

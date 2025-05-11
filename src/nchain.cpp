@@ -200,7 +200,7 @@ string NChain::Regurgitate(string input) {
         res += nxt + " ";
     }
 
-    return "\nregurgitating:\n\n" + res + "...\n\n";
+    return res;
 }
 
 bool NChain::SaveChain(string filepath) {

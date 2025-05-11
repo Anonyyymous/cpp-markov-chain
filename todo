@@ -1,8 +1,8 @@
 1) sync stuff with remote repo
 1.5) remove Word class stuff                                            ?
-3) let newlines stop/start chains, so we can start from nothing         ?
+3) remove starting and trailing empty spaces
+4) add soft cutoff for new sentences, and hard limit for words
 5) HTTP server
-    1) dont hang on accept
-    2) make echo server
-    3) research http
-6) make HTTP server use jarkov chain to reply to contents
+    1) make it infinite?
+    2) add word count to response (somehow)
+https://medium.com/@aryandev512/i-wrote-a-http-server-from-scratch-in-c-0a97e8252371

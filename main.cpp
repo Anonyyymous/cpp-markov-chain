@@ -21,10 +21,20 @@ int main(int argc, char** argv) {
             }
             case 'c': {
                 Client client;
-                return client.Connect("", port);
+                cout << argc << endl;
+                if(argc < 3)
+                    return client.Connect("hello world", port);
+                string msg(argv[2]);
+                return client.Connect(msg, port);
             }
             case 'e': {
                 EchoServer server(port);
+                return server.StartServer();
+            } case 'h': {
+                HTTPServer server(port, TestWebsite);
+                return server.StartServer();
+            } case 'j': {
+                HTTPServer server(port, TestChain2);
                 return server.StartServer();
             }
         }
