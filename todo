@@ -8,11 +8,10 @@
 5) HTTP server
     1) make server infinite?
     2) add word count to response?
-    2.5) improve param parsing
-    2.75) improve resource parsing so it always gets the right model
-    3) let the server remember models/keep them loaded
     4) maybe change how the toJson works
 6) Documentation
 7) Tests
     1) Python script that requests it and checks it against another string from a given training data
+    2) program that gives inputs to train/save a file, then run it?
+    3) then get it from the api via python
 https://medium.com/@aryandev512/i-wrote-a-http-server-from-scratch-in-c-0a97e8252371
