@@ -8,19 +8,18 @@
 
 void ShiftLeft(vector<string>* vec);
 
-NChain::NChain(int length, int outputSize, bool debug) {
-    Initialise(length, outputSize, debug);
+NChain::NChain(int length, bool debug) {
+    Initialise(length, debug);
 }
-NChain::NChain(int length, int outputSize) {
-    Initialise(length, outputSize, false);
+NChain::NChain(int length) {
+    Initialise(length, false);
 }
-void NChain::Initialise(int length, int outputSize, bool debug) {
+void NChain::Initialise(int length, bool debug) {
     this->length = length;
     this->debug_ = debug;
-    this->outputSize = outputSize;
 }
 void NChain::DisplayDetails() {
-    cout << length << "-chain with output of: " << outputSize << endl;
+    cout << length << "-chain with an output count of: " << usedWords_.size() << endl;
 }
 string concatVector(vector<string> vec) {
     string res = "";
@@ -158,7 +157,11 @@ Word* NChain::PickWord(string target) {
     vector<Word*> words = usedWords_.at(target);
     return words[rand() % words.size()];
 }
-string NChain::Regurgitate(string input) {
+string NChain::Regurgitate(string input, int soft_limit, int hard_limit) {
+    return Regurgitate(input, soft_limit, hard_limit, nullptr);
+}
+string NChain::Regurgitate(string input, int soft_limit, int hard_limit, int* words_used) {
+    cout << length << endl;
     vector<string> word_buffer(length);
     //fill(word_buffer.begin(), word_buffer.end(), "");
     cout << word_buffer.size() << endl;
@@ -178,8 +181,9 @@ string NChain::Regurgitate(string input) {
     cout << "starting from: '" << word_buffer[length-1] << "' with: " << word->word << " from: " << "'" << test << "'";
 
     res += ' ';
+    int i;
 
-    for(int i = 0; i < outputSize; i++) {
+    for(i = 0; i < hard_limit; i++) {
         string context = concatVector(word_buffer);
         string nxt = "";
         if(usedWords_.count(context) > 0) {
@@ -197,9 +201,18 @@ string NChain::Regurgitate(string input) {
         ShiftLeft(&word_buffer);
         word_buffer.push_back(nxt);
 
-        res += nxt + " ";
+        res += nxt;
+        if(i > soft_limit && nxt[nxt.size()-1] == '.') {
+            cout << "quitting regurgitation early after full stop was found after soft limit of " << soft_limit << endl;
+            break;
+        }
+        res +=  " "; // added after the if statement to remove trailing spaces
     }
-
+    if(i == hard_limit) {
+        cout << "hard limit reached: " << hard_limit << endl;
+        res += "...";
+    }
+    cout << "chain of length " << i << " generated" << endl;
     return res;
 }
 
@@ -213,7 +226,6 @@ bool NChain::SaveChain(string filepath) {
     //file << length;// << outputSize;
     //file << outputSize;
     file.write(reinterpret_cast<char*>(&length), sizeof(int));
-    file.write(reinterpret_cast<char*>(&outputSize), sizeof(int));
 
     // total size
     int temp = usedWords_.size();
@@ -254,6 +266,7 @@ bool NChain::LoadChain(string filepath) {
         cout << "file: '" << filepath << "' does not exist, couldnt load to it" << endl;
         return false;
     }
+    cout << "file exists: " << filepath << endl;
 
     ifstream file(filepath, ios::binary);
     if(!file.is_open()) {
@@ -263,12 +276,9 @@ bool NChain::LoadChain(string filepath) {
     //file >> length >> outputSize;
     //file >> length;
     length = -1;
-    outputSize = -1;
-
 
     int size = 0;
     file.read(reinterpret_cast<char*>(&length), sizeof length);
-    file.read(reinterpret_cast<char*>(&outputSize), sizeof outputSize);
     file.read(reinterpret_cast<char*>(&size), sizeof(int));
     
     usedWords_ = map<string, vector<Word*>>();

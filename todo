@@ -1,8 +1,18 @@
 1) sync stuff with remote repo
 1.5) remove Word class stuff                                            ?
 3) remove starting and trailing empty spaces
+    make regurgitate's i start at [word count] of input, and make soft limit actually work
+    let us add training data to a model again
 4) add soft cutoff for new sentences, and hard limit for words
+    implement this into HTTP 
 5) HTTP server
-    1) make it infinite?
-    2) add word count to response (somehow)
+    1) make server infinite?
+    2) add word count to response?
+    2.5) improve param parsing
+    2.75) improve resource parsing so it always gets the right model
+    3) let the server remember models/keep them loaded
+    4) maybe change how the toJson works
+6) Documentation
+7) Tests
+    1) Python script that requests it and checks it against another string from a given training data
 https://medium.com/@aryandev512/i-wrote-a-http-server-from-scratch-in-c-0a97e8252371

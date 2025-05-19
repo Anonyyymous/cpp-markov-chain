@@ -10,21 +10,22 @@ using namespace std;
 
 class NChain {
     public:
-        int length, outputSize;
-        NChain(int length, int outputSize, bool debug);
-        NChain(int length, int outputSize);
+        int length;
+        NChain(int length, bool debug);
+        NChain(int length);
         //NChain(string filepath);
         bool Train(string filepath);
         bool TrainDirectory(string path);
         bool HasWord(string word);
-        string Regurgitate(string input);
+        string Regurgitate(string input, int soft_limit, int hard_limit);
+        string Regurgitate(string input, int soft_limit, int hard_limit, int* words_used);
         void DisplayDetails();
 
         bool SaveChain(string filepath);
         bool LoadChain(string filepath);
     private:
         bool debug_ = false;
-        void Initialise(int length, int outputSize, bool debug);
+        void Initialise(int length, bool debug);
         bool InitialiseWordBuffer(string input, vector<string>* word_buffer);
         Word* PickWord(string target);
         Word* AddWord(string context, string newWord);

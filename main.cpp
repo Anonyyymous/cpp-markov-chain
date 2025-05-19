@@ -11,7 +11,8 @@ using namespace std;
 
 int main(int argc, char** argv) {
     //TwoChain* chain = new TwoChain();
-
+    std::srand(std::time(NULL));
+    
     if(argc > 1) {
         const int port = 6678;
         switch (argv[1][0]) {

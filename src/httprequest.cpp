@@ -1,7 +1,7 @@
 #include<httprequest.hpp>
 #include<iostream>
 
-HTTPRequest::HTTPRequest(int type, const char* resource) : requestedResource(resource), requestType(type) {
+HTTPRequest::HTTPRequest(int type, const char* resource) : requestLine(resource), requestType(type) {
     std::cout << "creating http request" << std::endl;
 }
 HTTPRequest::HTTPRequest(const char* contents_) {
@@ -15,10 +15,11 @@ HTTPRequest::HTTPRequest(const char* contents_) {
 
     // will now be at the end of the line
     // since this line ends with HTTP/1.1, the resource will be the rest of the line
-    requestedResource = contents.substr(i, length-11); // may need adjusting
-    std::cout << "resource extracted: '" << requestedResource << "'" << std::endl;
+    requestLine = contents.substr(i, length-11); // may need adjusting
+    std::cout << "resource extracted: '" << requestLine << "'" << std::endl;
 
     ParseHeadersAndBody(contents, i + length);
+    ParseParams();
 }
 // returns the index at which to start analysing the request from, including a space
 int HTTPRequest::ParseRequestType(char first_char) {
@@ -33,6 +34,36 @@ int HTTPRequest::ParseRequestType(char first_char) {
     }
 
     return 0;
+}
+void HTTPRequest::ParseParams() {
+    int i = requestLine.size()-1;
+
+    // should be changed somehow to ignore the target URL completely
+    std::cout << "parsing params: " << requestLine << std::endl;
+    while(requestLine[--i] != '/');
+
+    // j = start of a new parameter name, e = index of the equals
+    int j = i, e = i;
+    bool parsing_name = true; // allows us to use '=' inside a parameter (e.g. var='i=j')
+    // TODO forloop?
+    while(i <= requestLine.size()) {
+        if(!parsing_name && (i == requestLine.size() || requestLine[i] == '&')) {
+            std::cout << i << "," << j << "," << e << std::endl;
+            std::string param_name = requestLine.substr(j+1, e-j-1);
+            if(i == requestLine.size())
+                i++; // counteracts the -1 in the length of param_value, as we dont have to skip the & 
+            std::string param_value = requestLine.substr(e+1, i-e-1);
+
+            params[param_name] = param_value;
+            std::cout << param_name << ": " << param_value << std::endl;
+            j = i;
+            parsing_name = true;
+        } else if(parsing_name && requestLine[i] == '=') {
+            e = i;
+            parsing_name = false;
+        }
+        i++;
+    }
 }
 void HTTPRequest::ParseHeadersAndBody(std::string contents, int start) {
     int i = start, j;

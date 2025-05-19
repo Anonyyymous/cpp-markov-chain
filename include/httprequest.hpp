@@ -10,9 +10,10 @@ const int GET = 1;
 class HTTPRequest {
     public:
         // lot of this is for metadata, if needed
-        std::string requestedResource, body;
+        std::string requestLine, body;
         int requestType, size;
         std::map<std::string, std::string> headers;
+        std::map<std::string, std::string> params;
 
         HTTPRequest(int type, const char* resource);
         HTTPRequest(const char* contents);
@@ -21,6 +22,7 @@ class HTTPRequest {
         // returns the index to start analysing the rest of the request from
         int ParseRequestType(char first_char);
         void ParseHeadersAndBody(std::string contents, int start);
+        void ParseParams();
 };
 
 #endif

@@ -10,21 +10,16 @@ map<string, NChain*> models;
 
 NChain* ParseChain() {
     cout << "parsing chain" << endl;
-    int length, outputSize;
+    int length;
     cout << "enter context size: " << endl;
     cin >> length;
     if(length <= 0)
         length = 2;
 
-    cout << "enter output size: " << endl;
-    cin >> outputSize;
-    if(outputSize <= 0)
-        outputSize = 2;
-
     // clearing input buffer, idk how eles
     while(getchar() != '\n');
 
-    return new NChain(length, outputSize);
+    return new NChain(length);
 }
 NChain* LoadChain(string filepath) { // TODO remove?
     NChain* chain = new NChain(-1, -1);
@@ -32,29 +27,26 @@ NChain* LoadChain(string filepath) { // TODO remove?
         chain->DisplayDetails();
         return chain;
     }
-    return NULL;
+    return nullptr;
+}
+bool MakeNewChain(NChain* chain) {
+    chain = ParseChain();
+    chain->DisplayDetails();
+
+    string training_filepath = "../training-data/";
+
+    std::srand(std::time(nullptr));
+
+    //cout << "hello world2" << endl;
+    return chain->TrainDirectory(training_filepath);
 }
 int RunTerminalModel(int argc, char** argv) {
-    NChain* chain = new NChain(-1, -1);
+    NChain* chain = nullptr;
     if(argc > 1) {
         cout << argv[1] << endl;
     }
-    if(argc > 1 && chain->LoadChain(argv[1])) {
+    if(argc > 1 && chain->LoadChain(argv[1]))
         cout << "model loaded successfully" << endl;
-    } else {
-        chain = ParseChain();
-        chain->DisplayDetails();
-
-        string training_filepath = "../training-data/";
-
-        std::srand(std::time(NULL));
-
-        //cout << "hello world2" << endl;
-        if(!chain->TrainDirectory(training_filepath)) {
-            cout << "womp womp, training failed" << endl;
-            return -1;
-        }
-    }
 
     std::srand(std::time({}));
 
@@ -64,14 +56,26 @@ int RunTerminalModel(int argc, char** argv) {
     getline(cin, inp);
 
     while(inp != "stop") {
-        if(inp.length() <= 1)
-            cout << chain->Regurgitate(inp) << endl;
-        else if(inp[0] == 's' && inp[1] == ' ')
-            chain->SaveChain(inp.substr(2, inp.length()-1));
-        else if(inp[0] == 'l' && inp[1] == ' ')
+        if(inp.length() >= 3 && inp[0] == 'l' && inp[1] == ' ')
             chain = LoadChain(inp.substr(2, inp.length()-1));
-        else
-            cout << chain->Regurgitate(inp) << endl;
+        else if(inp.length() >= 1 && inp[0] == 'n') {
+            chain = ParseChain();
+
+            // check if we have a filepath supplied, for some initial training data
+        } else if(inp.length() == 1 && inp[0] == 'q')
+            break;
+        else if(chain != nullptr) {
+            if(inp.length() >= 3 && inp[0] == 's' && inp[1] == ' ')
+                chain->SaveChain(inp.substr(2, inp.length()-1));
+            else if(inp.length() >= 3 && inp[0] == 't' && inp[1] == ' ') {
+                string training_filepath = inp.substr(2, inp.size()-1);
+                cout << training_filepath << endl;
+                chain->TrainDirectory(training_filepath);
+            } else
+                cout << endl << chain->Regurgitate(inp, 50, 100) << endl;
+        } else {
+            cout << "cannot perform command; chain is null" << endl;
+        }
         cout << ">>";
         getline(cin, inp);
     }
@@ -89,52 +93,69 @@ HTTPResponse TestChain(HTTPRequest request) {
     //NChain* chain = LoadChain()
     NChain* chain = new NChain(2, 50);
     chain->TrainDirectory("../training-data/");
-    return HTTPResponse(200, headers, chain->Regurgitate(request.requestedResource.substr(1, request.requestedResource.size()-1)));
+    return HTTPResponse(200, headers, chain->Regurgitate(request.requestLine.substr(1, request.requestLine.size()-1), 50, 100));
 }
 
+// TODO rewrite myself
 void ParseSpaces(string* target) {
     string replace_word = "%20";
 
-    // Replacement string
-    string replace_by = " ";
-
-    // Find the first occurrence of the substring
     size_t pos = target->find(replace_word);
 
-    // Iterate through the string and replace all
-    // occurrences
     while (pos != string::npos) {
-        // Replace the substring with the specified string
-        target->replace(pos, replace_word.size(), replace_by);
+        target->replace(pos, replace_word.size(), " ");
 
-        // Find the next occurrence of the substring
-        pos = target->find(replace_word,
-                         pos + replace_by.size());
+        pos = target->find(replace_word, pos + 1);
     }
 }
 string ConvertToJson(string result, int status_code) {
     return "{\"status\":" + to_string(status_code) + ",\"response\":\"" + result + "\",\"length\":" + to_string(result.size()) + "}";
 }
+bool CanParseRequestParam(HTTPRequest request, string param_name, int* value) {
+    try {
+        *value = std::stoi(request.params.at(param_name));
+        return true;
+    } catch (std::invalid_argument const& e){
+        // couldnt convert to string
+        return false;
+    } catch (std::out_of_range) {
+        // one of the limits couldnt be found
+        return true;
+    }
+}
 HTTPResponse TestChain2(HTTPRequest request) {
     map<string, string> headers;
     headers["Accept-Ranges"] = "bytes";
 
+    /* if(request.requestedResource == "/")
+        return  */
+
     string result;
     int status_code = 200;
-    int i = request.requestedResource.size()-1;
+    int i = request.requestLine.size()-1;
 
-    while(request.requestedResource[i--] != '/') {
+    int soft_limit = 50, hard_limit = 100;
+
+    if(!CanParseRequestParam(request, "soft_limit", &soft_limit) || !CanParseRequestParam(request, "hard_limit", &hard_limit))
+        return HTTPResponse(400, headers, ConvertToJson("couldnt parse hard/soft limit", 400));
+
+    cout << "hard limit: " << hard_limit << ", soft limit: " << soft_limit << endl;
+
+    // goes to the last '/' in the string, which should be 
+    while(request.requestLine[i--] != '/') {
         //cout << request.requestedResource[i];
     }
     cout << endl;
 
-    string resource = ".." + request.requestedResource.substr(0, i+1);
-    string input = request.requestedResource.substr(i+2, request.requestedResource.size()-i);
+    /* string resource = "../models" + request.requestLine.substr(0, i+1); */
+    /* string input = request.requestLine.substr(i+2, request.requestLine.size()-i); */
+    string resource = "../models/" + request.params["model"]; // dont want to use .at(), as [] also initialises new values, so these will both default to ""
+    string input = request.params["prompt"];
     ParseSpaces(&input);
 
     cout << "requesting: '" << input << "' from: '" << resource << "'" << endl;
  
-    if(!filesystem::exists(resource)) {
+    if(!(filesystem::exists(resource) && filesystem::path(resource).extension() == ".jkc")) {
         result = ConvertToJson("", 404);
         status_code = 404;
     } else {
@@ -151,7 +172,7 @@ HTTPResponse TestChain2(HTTPRequest request) {
             //result = "error while loading model";
             result = ConvertToJson("", 405);
         } else {
-            result = ConvertToJson(model->Regurgitate(input), 200);
+            result = ConvertToJson(model->Regurgitate(input, 50, 100), 200);
         }
     }
     return HTTPResponse(status_code, headers, result);
