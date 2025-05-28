@@ -33,4 +33,6 @@ class NChain {
         map<string, vector<Word*>> usedWords_;
 };
 
+NChain* LoadChain(string filepath);
+
 #endif

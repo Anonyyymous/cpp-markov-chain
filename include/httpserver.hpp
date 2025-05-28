@@ -9,12 +9,12 @@
 class HTTPServer : public Server {
     public:
         HTTPServer(int port, HTTPResponse (*consumer)(HTTPRequest)) : Server(port, true), consumer(consumer) {
-            std::cout << "initialising echo server" << std::endl;
+            std::cout << "initialising http server with port" << port << std::endl;
         }
         int StartServer() {
             // explanations will be in original server.StartServer()
 
-            std::cout << "starting echo server" << std::endl;
+            std::cout << "starting http server" << std::endl;
             serverSocket = socket(AF_INET, SOCK_STREAM, 0);
         
             struct sockaddr_in server_address;
@@ -40,10 +40,6 @@ class HTTPServer : public Server {
                 std::cout << "waiting for connections" << std::endl;
                 int client_socket = accept(serverSocket, nullptr, nullptr);
 
-                std::cout << "accepted client: " << client_socket << std::endl;
-                std::cout << "server sock/peer name: " << getsockname(serverSocket, (sockaddr*)&server_address, (socklen_t*) sizeof(server_address)) << ", " 
-                    << getpeername(serverSocket, (sockaddr*)&server_address, (socklen_t*) sizeof(server_address)) << std::endl;
-            
                 if(client_socket < 0) {
                     std::cout << "an error occured trying to accept client connections" << std::endl;
                     return client_socket;
@@ -56,13 +52,10 @@ class HTTPServer : public Server {
                     close(client_socket);
                     continue;
                 }
-                std::cout << "client message: '" << buffer << "', " << sizeof(buffer) << std::endl;
-
                 HTTPRequest req(buffer);
                 HTTPResponse response = consumer(req);
                 std::cout << std::endl; 
                 
-                std::cout << "replying to client with: '" << response.contents << "'" << std::endl;
                 res = send(client_socket, response.contents.c_str(), response.contents.size(), 0);
 
                 std::cout << "result of sending: " << res << std::endl;

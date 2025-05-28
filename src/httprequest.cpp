@@ -7,7 +7,6 @@ HTTPRequest::HTTPRequest(int type, const char* resource) : requestLine(resource)
 HTTPRequest::HTTPRequest(const char* contents_) {
     std::string contents(contents_);
     size = contents.size();
-    //std::cout << "parsing http request contents:" << std::endl << contents << std::endl;
 
     int i = ParseRequestType(contents[0]);
     int length = 0;
@@ -16,7 +15,6 @@ HTTPRequest::HTTPRequest(const char* contents_) {
     // will now be at the end of the line
     // since this line ends with HTTP/1.1, the resource will be the rest of the line
     requestLine = contents.substr(i, length-11); // may need adjusting
-    std::cout << "resource extracted: '" << requestLine << "'" << std::endl;
 
     ParseHeadersAndBody(contents, i + length);
     ParseParams();
@@ -39,7 +37,6 @@ void HTTPRequest::ParseParams() {
     int i = requestLine.size()-1;
 
     // should be changed somehow to ignore the target URL completely
-    std::cout << "parsing params: " << requestLine << std::endl;
     while(requestLine[--i] != '/');
 
     // j = start of a new parameter name, e = index of the equals
@@ -48,14 +45,12 @@ void HTTPRequest::ParseParams() {
     // TODO forloop?
     while(i <= requestLine.size()) {
         if(!parsing_name && (i == requestLine.size() || requestLine[i] == '&')) {
-            std::cout << i << "," << j << "," << e << std::endl;
             std::string param_name = requestLine.substr(j+1, e-j-1);
             if(i == requestLine.size())
                 i++; // counteracts the -1 in the length of param_value, as we dont have to skip the & 
             std::string param_value = requestLine.substr(e+1, i-e-1);
 
             params[param_name] = param_value;
-            std::cout << param_name << ": " << param_value << std::endl;
             j = i;
             parsing_name = true;
         } else if(parsing_name && requestLine[i] == '=') {
@@ -67,7 +62,6 @@ void HTTPRequest::ParseParams() {
 }
 void HTTPRequest::ParseHeadersAndBody(std::string contents, int start) {
     int i = start, j;
-    std::cout << "headers:" << std::endl;
     while(contents[i] != '\n' && i <= contents.size()-1) { 
         start = i;
         j = i;
@@ -77,9 +71,7 @@ void HTTPRequest::ParseHeadersAndBody(std::string contents, int start) {
         while(contents[++i] != '\n');
         std::string fst = contents.substr(start, j-start-1);
         std::string snd = contents.substr(j+1, i - j - 2);
-        std::cout << "'" << fst << "':'" << snd << "'" << std::endl; 
         headers[fst] = snd;
 
     }
-    std::cout << "-----------------------------" << std::endl;
 }

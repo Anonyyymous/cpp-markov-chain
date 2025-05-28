@@ -74,6 +74,7 @@ bool NChain::Train(string filepath) {
         return false;
     }
 
+    // TODO
     string text, line;
     // vector<string> lines;
     while(getline(file, line)) {
@@ -118,14 +119,16 @@ bool NChain::HasWord(string word) {
 bool NChain::InitialiseWordBuffer(string input, vector<string>* word_buffer) {
     string start;
     int j = 0;
-    //if(debug_)
     cout << "processing input: '" << input << "'" << endl;
+    // TODO reverse order, so it starts from the end? could add items to a stack
     for(int i = 0; i < input.length(); i++) {
         if(input[i] == ' ') {
             start = input.substr(j, i-j);
             j = i+1;
-            if(!HasWord(start))
+            if(!HasWord(start)) {
+                cout << "dont have word: " << start << endl;
                 continue;
+            }
             if(word_buffer->size() >= length)
                 ShiftLeft(word_buffer);
 
@@ -133,7 +136,6 @@ bool NChain::InitialiseWordBuffer(string input, vector<string>* word_buffer) {
             
             cout << "processing word: " << start << endl;
         }
-            //cout << start << endl;
     }
 
     start = input.substr(j, input.length()-j);
@@ -161,14 +163,12 @@ string NChain::Regurgitate(string input, int soft_limit, int hard_limit) {
     return Regurgitate(input, soft_limit, hard_limit, nullptr);
 }
 string NChain::Regurgitate(string input, int soft_limit, int hard_limit, int* words_used) {
-    cout << length << endl;
     vector<string> word_buffer(length);
     //fill(word_buffer.begin(), word_buffer.end(), "");
-    cout << word_buffer.size() << endl;
+    // word_buffer.reserve(length);
 
     Word* word; // = used_words[word_buffer[length-1]];
     string res = "";
-    //InitialiseWordBuffer(input, &word_buffer);
 
     if(InitialiseWordBuffer(input, &word_buffer))
         res = input;
@@ -177,12 +177,11 @@ string NChain::Regurgitate(string input, int soft_limit, int hard_limit, int* wo
     word = PickWord(test);
     cout << "input: '" << test << "'" <<  endl;
 
-    //cout << endl << word_buffer[0] << " " << word_buffer[1] << endl;
-    cout << "starting from: '" << word_buffer[length-1] << "' with: " << word->word << " from: " << "'" << test << "'";
+    cout << "starting from: '" << word_buffer[length-1] << "' with: '" << word->word << "' from: " << "'" << test << "'" << endl;
 
     res += ' ';
     int i;
-
+    // once we reach the hard limit, stop immediately, else go until a full stop after the soft limit, or end of data is found
     for(i = 0; i < hard_limit; i++) {
         string context = concatVector(word_buffer);
         string nxt = "";
@@ -190,11 +189,12 @@ string NChain::Regurgitate(string input, int soft_limit, int hard_limit, int* wo
             // if key exists
             word = PickWord(context);
             
-        } else
+        } else // if we somehow havent been trained on the context, quit
             break;
+
         nxt = word->word;
         if(word == NULL) {
-            //next = words[0];
+            // if we reach the end of the training data
             res += "\n";
             break;
         }
@@ -208,12 +208,20 @@ string NChain::Regurgitate(string input, int soft_limit, int hard_limit, int* wo
         }
         res +=  " "; // added after the if statement to remove trailing spaces
     }
+    // check for hard limit / change the ending depending on whether it was reached
     if(i == hard_limit) {
         cout << "hard limit reached: " << hard_limit << endl;
         res += "...";
     }
     cout << "chain of length " << i << " generated" << endl;
     return res;
+}
+
+// TODO make it work, compiler doesnt like it for some reason
+// saving integers has to be done this goofy way, for some reason
+// writing takes a char* and the buffer size, so just tell the compiler to treat it as such
+void write(ofstream* file, int i) {
+    file->write(reinterpret_cast<char*>(&i), sizeof(int));
 }
 
 bool NChain::SaveChain(string filepath) {
@@ -223,30 +231,31 @@ bool NChain::SaveChain(string filepath) {
         cout << filepath << " exists, about to save to it." << endl;
     ofstream file(filepath, ios::out | ios::binary);
 
-    //file << length;// << outputSize;
-    //file << outputSize;
-    file.write(reinterpret_cast<char*>(&length), sizeof(int));
+    /* file.write(reinterpret_cast<char*>(&length), sizeof(int));
 
     // total size
     int temp = usedWords_.size();
-    file.write(reinterpret_cast<char*>(&temp), sizeof(int));
+    file.write(reinterpret_cast<char*>(&temp), sizeof(int)); */
+    write(&file, length);
+    write(&file, usedWords_.size());
 
     for(auto const& p : usedWords_) {
         // size of string
-        temp = p.first.length();
-        file.write(reinterpret_cast<char*>(&temp), sizeof(int));
+        //temp = p.first.length();
+        //file.write(reinterpret_cast<char*>(&temp), sizeof(int));
+        write(&file, p.first.length());
         file << p.first.c_str();
 
-        temp = p.second.size();
-        file.write(reinterpret_cast<char*>(&temp), sizeof(int));
+        //temp = p.second.size();
+        //file.write(reinterpret_cast<char*>(&temp), sizeof(int));
+        write(&file,p.second.size());
         for(auto const& s : p.second) {
-            temp = s->word.length();
-            file.write(reinterpret_cast<char*>(&temp), sizeof(int));
+            /* temp = s->word.length();
+            file.write(reinterpret_cast<char*>(&temp), sizeof(int)); */
+            write(&file, s->word.length());
             file << s->word.c_str();
         }
     }
-    //file.write(reinterpret_cast<const char*>(usedWords_[0].size()), sizeof(int));
-
     cout << "closing file" << endl;
     file.close();
 
@@ -266,7 +275,6 @@ bool NChain::LoadChain(string filepath) {
         cout << "file: '" << filepath << "' does not exist, couldnt load to it" << endl;
         return false;
     }
-    cout << "file exists: " << filepath << endl;
 
     ifstream file(filepath, ios::binary);
     if(!file.is_open()) {
@@ -304,6 +312,16 @@ bool NChain::LoadChain(string filepath) {
     //file.write(reinterpret_cast<const char*>(usedWords_[0].size()), sizeof(int));
 
     file.close();
+    cout << "model loaded from " << filepath << endl;
 
     return true;
+}
+
+NChain* LoadChain(string filepath) { // TODO remove?
+    NChain* chain = new NChain(-1, -1);
+    if(chain->LoadChain(filepath)) {
+        chain->DisplayDetails();
+        return chain;
+    }
+    return nullptr;
 }
