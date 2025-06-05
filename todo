@@ -1,26 +1,28 @@
 commits
+    Cleanup 1 (terminal chain use QOL features (limits, remembering paths), model versioning, and minor code refactor)
+        fix regurgitation error on bad input
     Tests created
-    Make soft/hard limits work (?)
     Everything else (general cleanup)
 
 
+make saving format version use a hash or something, so it cant get mis-seen for long lengths
+regurgitate word count is wrong
+make regurgitation take into account the input word count
 
-need a way to give soft/hard limit in terminal mode
 fix vector stuff with initialising it at context length
 reverse initialiseWordBuffer order
 make sure everything uses the same naming convention/make a style guide?
 make everything have stds
-add server stuff to source files
+
 1) enforce saving with .jkc
     Try catch around loading?
 1.5) remove Word class stuff                                            ?
 3) remove starting and trailing empty spaces
-    make regurgitate's i start at [word count] of input, and make soft limit actually work
-    make soft/hard limit actually work
+    make regurgitate's i start at [word count] of input
 5) HTTP server
     1) make server infinite?
     4) maybe change how the toJson works
-5.75) make prompt contain ' on either side to distinguish it
+    5) make prompt contain ' on either side to distinguish it
 7) Tests
     1) Python script that requests it and checks it against another string from a given training data
     2) program that gives inputs to train/save a file, then run it?

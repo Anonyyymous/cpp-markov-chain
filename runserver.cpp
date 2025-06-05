@@ -16,7 +16,7 @@ static int port;
 
 
 // TODO rewrite myself
-void ParseSpaces(string* target) {
+void parse_spaces(string* target) {
     string replace_word = "%20";
 
     size_t pos = target->find(replace_word);
@@ -27,10 +27,10 @@ void ParseSpaces(string* target) {
         pos = target->find(replace_word, pos + 1);
     }
 }
-string ConvertToJson(string result, int status_code) {
+string convert_to_json(string result, int status_code) {
     return "{\"status\":" + to_string(status_code) + ",\"response\":\"" + result + "\"}";
 }
-bool CanParseRequestParam(HTTPRequest request, string param_name, int* value) {
+bool can_parse_request_param(HTTPRequest request, string param_name, int* value) {
     try {
         *value = std::stoi(request.params.at(param_name));
         return true;
@@ -38,26 +38,25 @@ bool CanParseRequestParam(HTTPRequest request, string param_name, int* value) {
         // couldnt convert to string
         return false;
     } catch (std::out_of_range) {
-        // one of the limits couldnt be found
+        // one of the limits couldnt be found, so use default value downstream
         return true;
     }
 }
 
-HTTPResponse ProcessRequest(HTTPRequest request) {
+HTTPResponse process_request(HTTPRequest request) {
     map<string, string> headers;
     headers["Accept-Ranges"] = "bytes";
+    headers["Accept"] = "application/vnd.api+json";
 
     // parse headers/query parameters -----------------------------------------------
     string result;
     int status_code = 200;
     int i = request.requestLine.size()-1;
 
-    int soft_limit = 50, hard_limit = 100;
+    int soft_limit = -1, hard_limit = -1;
 
-    if(!CanParseRequestParam(request, "soft_limit", &soft_limit) || !CanParseRequestParam(request, "hard_limit", &hard_limit))
-        return HTTPResponse(400, headers, ConvertToJson("couldnt parse hard/soft limit", 400));
-
-    cout << "hard limit: " << hard_limit << ", soft limit: " << soft_limit << endl;
+    if(!can_parse_request_param(request, "soft_limit", &soft_limit) || !can_parse_request_param(request, "hard_limit", &hard_limit))
+        return HTTPResponse(400, headers, convert_to_json("couldnt parse hard/soft limit", 400));
 
     // goes to the last '/' in the string, which should be 
     while(request.requestLine[i--] != '/');
@@ -65,15 +64,15 @@ HTTPResponse ProcessRequest(HTTPRequest request) {
 
     // dont want to use .at(), as [] also initialises new values, so these will both default to ""
     string resource = model_path + request.params["model"];
-    string input = request.params["prompt"];
-    ParseSpaces(&input);
+    string input = request.params["prompt"].substr(1, request.params["prompt"].length()-2); // gets rid of the ' on either side
+    parse_spaces(&input);
 
     cout << "requesting: '" << input << "' from: '" << resource << "'" << endl;
     
     // process query -----------------------------------------------
     // check it is a valid file (all models should end with .jkc)
     if(!(filesystem::exists(resource) && filesystem::path(resource).extension() == ".jkc")) {
-        result = ConvertToJson("", 404); // 404 = resource doesnt exist
+        result = convert_to_json("", 404); // 404 = resource doesnt exist
         status_code = 404;
     } else {
         NChain* model; // initialise so we can load it
@@ -88,15 +87,15 @@ HTTPResponse ProcessRequest(HTTPRequest request) {
 
         if(model == nullptr) {
             status_code = 405; // 405 = method (chain) not found/couldnt be loaded correctly
-            result = ConvertToJson("", 405);
+            result = convert_to_json("", 405);
         } else { // finally, a successful query
-            result = ConvertToJson(model->Regurgitate(input, 50, 100), 200);
+            result = convert_to_json(model->Regurgitate(input, 50, 100), 200);
         }
     }
     return HTTPResponse(status_code, headers, result);
 }
 
-void MakeConfig(string config_path) {
+void make_config(string config_path) {
     // default values
     port = 6678;
     model_path = "../models/";
@@ -113,7 +112,7 @@ void MakeConfig(string config_path) {
     cout << "config file created" << endl;
 }
 
-void ProcessConfig(string config_path) {
+void process_config(string config_path) {
     if(filesystem::exists(config_path)) {
         // read from file
         try{
@@ -134,10 +133,10 @@ void ProcessConfig(string config_path) {
         } catch (exception e) {
             // if we couldnt load the file, just create a new one at the same place
             cout << "couldnt successfuly read config file... ";
-            MakeConfig(config_path);
+            make_config(config_path);
         }
     } else // file couldnt be found, so just create the file there for the future
-        MakeConfig(config_path);
+        make_config(config_path);
 }
 
 int main(int argc, char** argv) {
@@ -148,8 +147,8 @@ int main(int argc, char** argv) {
 
     cout << "config path: " << config_path << endl;
 
-    ProcessConfig(config_path);
+    process_config(config_path);
 
-    HTTPServer server(port, ProcessRequest);
+    HTTPServer server(port, process_request);
     return server.StartServer();
 }

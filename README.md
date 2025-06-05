@@ -9,24 +9,28 @@ Similarly, the hard limit is an absolute cut-off point - once the hard limit is 
 
 The number of words a chain has in its context is referred to as its 'length'. A chain with a length of 1 just knows what word follows another, a chain with a length of 2 knows that 'I am' follows 'a' and 'am a' follows 'fish', in the sentence 'I am a fish'.
 ### key Characters
-'n' create a new chain
+- 'n' create a new chain
 
 Directories are separated from the command character by a single space
 
-'l' loads a chain from a given directory*
-'t' trains a chain on a given directory
-'s' saves a chain to a given directory*
+- 'l' loads a chain from a given directory*
+- 't' trains a chain on a given directory
+- 's' saves a chain to a given directory*
+- 'c' changes a chain option (e.g. default soft/hard limit)
+- - 's' for soft limit
+- - 'h' for hard limit
+- '>' regurgitates the rest of the input
 
-'q' quits the program
+- 'q' quits the program
 
-Any other input is assumed to be input to a chain, so queries the current chain (null by default, so remember to load or train a new one before prompting).
+Otherwise, it is assumed that the text was meant to be as input to the chain for regurgitation.
 
-\* chains should be saved with an .jkc extension.
+\* chains should be saved with an .jkc extension. If the chain has already been saved/loaded, it will remember this location, so you won't need to specify the location later
 ## Running The Server
 When initialising the server, do ./run-server [server config path].
 The server config is optional and stores settings about the server. If a config cannot be found, values will default to:
->> port = 6678
->> model-directory = ../models/
+> port = 6678
+> model-directory = ../models/
 ### Running The Server as a Container
 The container uses a two-stage build process (hence why .dockerignore is a bit bland) to create only the necessary files in the image (the server executable, config file (TODO), and models directory).
 ## Querying The Server
