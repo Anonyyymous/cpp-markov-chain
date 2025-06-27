@@ -8,10 +8,10 @@
 
 class HTTPServer : public Server {
     public:
-        HTTPServer(int port, HTTPResponse (*consumer)(HTTPRequest));
+        HTTPServer(int port, HTTPResponse (*consumer)(HTTPRequest, bool), bool quiet=false);
         int StartServer();
     private:
-        HTTPResponse (*consumer)(HTTPRequest input);
+        HTTPResponse (*consumer)(HTTPRequest request, bool quiet);
 };
 
 #endif

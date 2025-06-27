@@ -1,7 +1,7 @@
 #include<httpserver.hpp>
 
 
-HTTPServer::HTTPServer(int port, HTTPResponse (*consumer)(HTTPRequest)) : Server(port, true), consumer(consumer) {
+HTTPServer::HTTPServer(int port, HTTPResponse (*consumer)(HTTPRequest, bool), bool quiet) : Server(port, quiet), consumer(consumer) {
     std::cout << "initialising http server with port" << port << std::endl;
 }
 int HTTPServer::StartServer() {
@@ -21,35 +21,66 @@ int HTTPServer::StartServer() {
     server_address.sin_port = htons(port);
     server_address.sin_addr.s_addr = INADDR_ANY;
     
-    std::cout << "bound" << std::endl;
+    if(!quiet)
+        std::cout << "bound" << std::endl;
     bind(serverSocket, (sockaddr*)&server_address, sizeof(server_address));
 
-    std::cout << "listening" << std::endl;
-    listen(serverSocket, 2);
+    if(!quiet)
+        std::cout << "listening" << std::endl;
+    listen(serverSocket, 256); // make space for 256 requestss
 
 
-    for(int i = 0; i < 6; i++) {
-        char buffer[4096] = {0};
-        std::cout << "waiting for connections" << std::endl;
-        int client_socket = accept(serverSocket, nullptr, nullptr);
+    try {
+        while(true) {
+            char buffer[4096] = {0};
+            if(!quiet)
+                std::cout << "waiting for connections" << std::endl;
+            int client_socket = accept(serverSocket, nullptr, nullptr);
 
-        HTTPRequest req(buffer);
-        HTTPResponse response = consumer(req);
-        std::cout << std::endl; 
-        
-        int res = send(client_socket, response.contents.c_str(), response.contents.size(), 0);
+            if(client_socket < 0) {
+                std::cout << "bad accept" << std::endl;
+                //listen(serverSocket, 1);
+                close(client_socket);
+                continue;
+            }
 
-        std::cout << "result of sending: " << res << std::endl;
-        if(res < 0) {
-            std::cout << "sent bad message: " << res << ":" << buffer << std::endl;
+            int res = read(client_socket, buffer, sizeof(buffer));
+            if(client_socket < 0) {
+                close(client_socket);
+                //listen(serverSocket, 1);
+                std::cout << "bad read: " << res << " -> " << buffer << std::endl;
+                continue;
+            }
+            
+            if(!quiet)
+                std::cout << buffer << std::endl;
+
+            HTTPRequest req(buffer);
+            if(!quiet)
+                std::cout << "request constructed" << std::endl;
+            HTTPResponse response = consumer(req, quiet);
+            if(!quiet)
+                std::cout << "response constructed" << std::endl; 
+            
+            res = send(client_socket, response.contents.c_str(), response.contents.size(), 0);
+
+            if(!quiet)
+                std::cout << "result of sending: " << res << std::endl;
+            if(res < 0) {
+                std::cout << "sent bad message: " << res << ":" << buffer << std::endl;
+                close(client_socket);
+                continue;
+            }
+
             close(client_socket);
-            continue;
+            std::cout << "client closed" << std::endl;
+
+            //listen(serverSocket, 1);
         }
-
-        close(client_socket);
-        std::cout << "client closed" << std::endl;
+    } catch (...) {
+        std::cout << "An error occured while the server was receiving messages" << std::endl;
     }
-
+    std::cout << "server died frfr\n";
     close(serverSocket);
 
     return 0;

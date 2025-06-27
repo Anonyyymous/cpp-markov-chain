@@ -12,6 +12,7 @@ class Server {
 
     protected:
         int serverSocket;
+        bool quiet;
 };
 
 #endif

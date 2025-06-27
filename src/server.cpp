@@ -1,7 +1,7 @@
 #include<server.hpp>
 
 
-Server::Server(int port, bool quiet) : port(port) {
+Server::Server(int port, bool quiet) : port(port), quiet(quiet) {
     if(!quiet)
         std::cout << "server created at port " << port << std::endl;
 }
@@ -54,7 +54,9 @@ int Server::StartServer() {
 
     // takes the client socket, a buffer, and flags (we can choose to peek data and not read it, or wait until the full message arrives)
     recv(client_socket, buffer, sizeof(buffer), 0); // we can use unistd.read/write for these operations, since they both do the same thing
-    std::cout << "client message: " << buffer << std::endl;
+    
+    if(!quiet)
+        std::cout << "client message: " << buffer << std::endl;
 
 
     close(serverSocket);

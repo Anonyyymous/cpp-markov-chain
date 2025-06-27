@@ -1,31 +1,48 @@
 import requests
 
+port = 6678
+addr = "127.0.0.1"
+
 class Test:
-    def __init__(self, arguement, expected, title):
-        self.arguement = arguement
-        self.expected = expected
+    def __init__(self, arguement, func, title):
+        self.arguement = f"http://{addr}:{port}/shart/pass/?" + arguement
+        self.func = func
         self.title = title
 
-    def evaluate(self):
-        result = requests.get(self.arguement).json()
-        if(result == self.expected):
-            print(f"check {self.title}: PASSED")
-        else:
-            print(f"check {self.title}: FAILED,", result)
+    def evaluate(self, test_no, test_size):
+        try:
+            result = requests.get(self.arguement).json()
+            if(self.func(result)):
+                print(f"{test_no}/{test_size}: check {self.title}: PASSED")
+                return True
+            else:
+                print(f"{test_no}/{test_size}: check '{self.title}': FAILED:\n'{result}'")
+                return False
+        except Exception as e:
+            print(f"{test_no}/{test_size}: check {self.title}:\nAn error occured - {e}")
+            return False
 
 tests = [
-    Test("localhost:6678/", "", "empty parameters"),
-    Test("localhost:6678/model=", "", "empty model"),
-    Test("localhost:6678/model=test", "", "invalid model path"),
-    Test("localhost:6678/model=test.jkc", "", "valid model path without prompt"),
-    Test("localhost:6678/model=test.jkc&prompt=to go", "", "valid model path with valid prompt"),
-    Test("localhost:6678/model=test.jkc&prompt=", "", "invalid prompt"),
-    Test("localhost:6678/model=test.jkc&prompt=Beep boop", "", "untrained prompt"),
-    Test("localhost:6678/model=test.jkc&prompt=to go", "", "soft limit"),
-    Test("localhost:6678/model=test.jkc&prompt=to go", "", "hard limit"),
-    Test("localhost:6678/model=test.jkc&prompt=to go", "", "hard/soft limit"),
-    Test("localhost:6678/model=test.jkc&prompt=Tell him", "", "hard/soft limit")
+    #Test("model=test.jkc&prompt='EAT SHIT'", {'status': 200, 'response': "Model 'test' doesn't exist"}, "valid model path without prompt"),
+    Test("", (lambda req: req == {'status': 404, 'response': "Model '' doesn't exist"}), "empty parameters"),
+    Test("model=test-mdl", (lambda req: req == {'status': 404, 'response': "Model 'test' doesn't exist"}), "invalid model path"),
+    Test("model=test-mdl.jkc", (lambda req: req['status'] == 200), "valid model path without prompt"),
+    Test("model=test-mdl.jkc&prompt='EAT SHIT'", (lambda req: req['status'] == 200), "valid model path without prompt")
 ]
 
-[test.evaluate() for test in tests]
+""" ,
+    Test("model=test", "", "invalid model path"),
+    Test("model=test.jkc", "", "valid model path without prompt"),
+    Test("model=test.jkc&prompt=to go", "", "valid model path with valid prompt"),
+    Test("model=test.jkc&prompt=", "", "invalid prompt"),
+    Test("model=test.jkc&prompt=Beep boop", "", "untrained prompt"),
+    Test("model=test.jkc&prompt=to go", "", "soft limit"),
+    Test("model=test.jkc&prompt=to go", "", "hard limit"),
+    Test("model=test.jkc&prompt=to go", "", "hard/soft limit"),
+    Test("model=test.jkc&prompt=Tell him", "", "hard/soft limit") """
+
+for index, test in enumerate(tests):
+    if not test.evaluate(index+1, len(tests)):
+        #exit(-1)
+        print()
 

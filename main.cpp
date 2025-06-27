@@ -4,21 +4,8 @@
 
 using namespace std;
 
-NChain* ParseChain() {
-    cout << "parsing chain" << endl;
-    int length;
-    cout << "enter context size: " << endl;
-    cin >> length;
-    if(length <= 0)
-        length = 2;
 
-    // clearing input buffer, idk how eles
-    while(getchar() != '\n');
-
-    return new NChain(length);
-}
-
-// literally just ignores the first 2 characters of the string, so 's blah' becomes 'blah'
+// literally just ignores the first 2 characters of the string, so 'fobar' becomes 'bar'
 string parse_arg(string* str) {
     return str->substr(2, str->length()-1);
 }
@@ -28,11 +15,17 @@ int main(int argc, char** argv) {
     std::srand(std::time(NULL));
     
     NChain* chain = nullptr;
-    if(argc > 1) {
-        cout << ">" << argv[1] << endl;
-    }
-    if(argc > 1 && (chain = LoadChain(argv[1])) != nullptr)
+    if(argc == 2 && (chain = LoadChain(argv[1])) != nullptr)
         cout << "model loaded successfully" << endl;
+    
+    /* // mainly for testing
+    else if(argc == 2) {
+        cout << "Training model on " << argv[1] << " and saving it to " << argv[2] << endl;
+        chain = new NChain(2, 5, 15);
+        chain->Train(argv[1]);
+        chain->SaveChain(argv[2]);
+        return 0;
+    } */
 
     std::srand(std::time({}));
 

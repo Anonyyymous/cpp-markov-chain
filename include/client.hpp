@@ -6,7 +6,7 @@
 class Client {
     public: 
         Client();
-        int Connect(std::string ip, int port);
+        int Connect(std::string destination, std::string ip, int port);
 };
 
 #endif

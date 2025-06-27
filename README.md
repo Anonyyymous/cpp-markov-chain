@@ -27,10 +27,12 @@ Otherwise, it is assumed that the text was meant to be as input to the chain for
 
 \* chains should be saved with an .jkc extension. If the chain has already been saved/loaded, it will remember this location, so you won't need to specify the location later
 ## Running The Server
-When initialising the server, do ./run-server [server config path].
+When initialising the server, do ./run-server (-c [server config path]) (q).
 The server config is optional and stores settings about the server. If a config cannot be found, values will default to:
 > port = 6678
 > model-directory = ../models/
+
+'q' will run the server in quiet mode, with less info being printed to the terminal
 ### Running The Server as a Container
 The container uses a two-stage build process (hence why .dockerignore is a bit bland) to create only the necessary files in the image (the server executable, config file (TODO), and models directory).
 ## Querying The Server
