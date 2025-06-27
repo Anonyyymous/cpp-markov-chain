@@ -1,1 +1,33 @@
 test server seems to run an old version of the consumer function - doesnt give the same outputs as when ran through the real server
+
+commits
+    Tests created
+    Everything else (general cleanup)
+
+
+        --regurgitate word count is wrong
+        --make regurgitation take into account the input word count
+
+        move training readLine into processing loop
+
+make client use header for file size, so we always have enough space ???
+
+        make server enforce ? before parameters
+
+        server prompts not working, isnt being parsed properly?
+        parsing headers incorrectly
+        parse params properly (ignore & if we're inside 's)
+
+        server params (q)
+
+        replace punctuation in reqest (add something onto ascii value given to replace number iwth char)
+
+close file descriptors
+
+make sure everything uses the same naming convention/make a style guide?
+
+give everything have stds
+
+        make server infinite
+
+1.5) remove Word class stuff
