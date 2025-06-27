@@ -1,0 +1,8 @@
+/models/
+/training-data/
+/temp-training/
+/.vscode
+/build/*
+!/build/CMakeLists.txt
+/unofficial-styleguide
+.todo
