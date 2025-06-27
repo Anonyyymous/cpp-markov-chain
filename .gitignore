@@ -5,3 +5,4 @@
 /build/*
 !/build/CMakeLists.txt
 /unofficial-styleguide
+!.github/workflows/ci.yml
