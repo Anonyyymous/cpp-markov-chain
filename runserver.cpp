@@ -133,8 +133,8 @@ HTTPResponse process_request(HTTPRequest request, bool quiet) {
 
 void make_config(string config_path) {
     // default values
-    port = 6678;
-    model_path = "../models/";
+    port = DEFAULT_PORT;
+    model_path = DEFAULT_MODEL_PATH;
 
     /* format - 
     [port no]

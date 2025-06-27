@@ -1,6 +1,6 @@
 # the point of this is making/running one environment to build the project
 # so that it can run in the actual one, without every single file
-FROM alpine AS build-env
+FROM alpine:latest AS build-env
 
 RUN apk add --no-cache build-base cmake
 
