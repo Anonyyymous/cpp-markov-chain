@@ -1,5 +1,4 @@
 commits
-    Tests created/comments
     Everything else (general cleanup)
     fix CI file (?)
 
@@ -22,3 +21,5 @@ change 'quiet' to 'debug' for continuity
 HTTPRequest->ParseReqyestType, make it support all request types -- enum?
 
 test with random punctuation (& and = inside prompts)
+
+use partial functions for testing
