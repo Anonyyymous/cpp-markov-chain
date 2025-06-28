@@ -4,6 +4,7 @@
 #include<string>
 #include<map>
 
+// TODO replace with enum
 const int POST = 0;
 const int GET = 1;
 
@@ -21,12 +22,11 @@ class HTTPRequest {
         std::string FormatToSend();
     
     private:
-        // returns the index to start analysing the rest of the request from
         int ParseRequestType(char first_char);
         void ParseHeadersAndBody(std::string contents, int start);
         void ParseParams(int param_start);
 };
 
-HTTPRequest* format_request_for(std::string destination, std::string subdirectory);
+HTTPRequest* format_request_for(std::string destination, std::string resource);
 
 #endif

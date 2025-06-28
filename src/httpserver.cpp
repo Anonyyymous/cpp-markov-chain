@@ -1,9 +1,15 @@
 #include<httpserver.hpp>
 
-
+/// @brief Creates a new HTTPServer
+/// @param port The port to open the server on later
+/// @param consumer A function that takes in a HTTRequest and returns a HTTPResponse
+/// @param quiet Whether or not the display information to the terminal
 HTTPServer::HTTPServer(int port, HTTPResponse (*consumer)(HTTPRequest, bool), bool quiet) : Server(port, quiet), consumer(consumer) {
     std::cout << "initialising http server with port" << port << std::endl;
 }
+
+/// @brief Starts the HTTPServer, and once it receives a request, passes it into 'consumer'
+/// @return 0 if the server closes successfully, -1 otherwise
 int HTTPServer::StartServer() {
     // explanations will be in original server.StartServer()
 
@@ -39,7 +45,6 @@ int HTTPServer::StartServer() {
 
             if(client_socket < 0) {
                 std::cout << "bad accept" << std::endl;
-                //listen(serverSocket, 1);
                 close(client_socket);
                 continue;
             }
@@ -47,7 +52,6 @@ int HTTPServer::StartServer() {
             int res = read(client_socket, buffer, sizeof(buffer));
             if(client_socket < 0) {
                 close(client_socket);
-                //listen(serverSocket, 1);
                 std::cout << "bad read: " << res << " -> " << buffer << std::endl;
                 continue;
             }
@@ -73,14 +77,13 @@ int HTTPServer::StartServer() {
             }
 
             close(client_socket);
-            std::cout << "client closed" << std::endl;
+            if(!quiet)
+                std::cout << "client closed" << std::endl;
 
-            //listen(serverSocket, 1);
         }
     } catch (...) {
         std::cout << "An error occured while the server was receiving messages" << std::endl;
     }
-    std::cout << "server died frfr\n";
     close(serverSocket);
 
     return 0;

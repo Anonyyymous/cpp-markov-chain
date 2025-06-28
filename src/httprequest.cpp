@@ -1,9 +1,16 @@
 #include<httprequest.hpp>
 #include<iostream>
 
-HTTPRequest::HTTPRequest(int type, const char* resource) : requestLine(resource), requestType(type) {
+/// @brief Creates a new HTTPRequest, with a given request type (GET, PUT, etc) and request line.
+/// More useful for formatting a request to send, where the body/headers can be added later
+/// @param request_type 
+/// @param request_line 
+HTTPRequest::HTTPRequest(int request_type, const char* request_line) : requestLine(request_line), requestType(request_type) {
     std::cout << "creating http request" << std::endl << std::endl << std::endl;
 }
+
+/// @brief Creates a new HTTPRequest object from an appropriately formatted string
+/// @param contents_ The string to parse
 HTTPRequest::HTTPRequest(const char* contents_) {
     std::string contents(contents_);
     size = contents.size();
@@ -23,7 +30,12 @@ HTTPRequest::HTTPRequest(const char* contents_) {
     ParseParams(param_start);
     std::cout << std::endl;
 }
+
 // returns the index at which to start analysing the request from, including a space
+
+/// @brief Returns the index at which to start analysing the request from, and parses the requestType of this request, based on the first character
+/// @param first_char 
+/// @return The number of characters to progress the index by
 int HTTPRequest::ParseRequestType(char first_char) {
     switch (first_char) {
         case 'G': {
@@ -37,9 +49,10 @@ int HTTPRequest::ParseRequestType(char first_char) {
 
     return 0;
 }
-void HTTPRequest::ParseParams(int i) {
-    //int i = requestLine.find("/?")+1;
 
+/// @brief Parses the string of HTTP parameters into a std::map
+/// @param i The index to start looking through the contents at
+void HTTPRequest::ParseParams(int i) {
     // j = start of a new parameter name, e = index of the equals
     int j = i, e = i;
     bool parsing_name = true; // allows us to use '=' inside a parameter (e.g. var='i=j')
@@ -61,30 +74,11 @@ void HTTPRequest::ParseParams(int i) {
         i++;
     }
 }
+
+/// @brief Parses the headers and contents of the HTTP request to a std::map and a string respectively
+/// @param contents The total http request, still as a string
+/// @param start The index to start parsing from
 void HTTPRequest::ParseHeadersAndBody(std::string contents, int start) {
-/*     int i = --start, j;
-
-    try{
-        while(i < contents.size()-2 && contents[i+1] != '\n') { 
-            start = i;
-            j = i;
-            while(contents[j++] != ':');
-            std::cout << "colon reached/";
-            i = j;
-            
-            while(contents[++i] != '\n');
-            std::cout << "newline reached/";
-            std::string fst = contents.substr(start+1, j-start-2);
-            std::string snd = contents.substr(j+1, i - j - 2);
-            std::cout << "substrings created/";
-            headers[fst] = snd;
-            std::cout << "i:" << i << "j:" << j << "\n" << fst << ": " << snd << "\n";
-            std::cout << "'" << contents[i] << "'" << contents[j] << "'\n";
-        }
-
-    } catch (...) {
-        std::cout << "womp womp '" << contents[i] << "'" << contents[j] << "'\n\n\n";
-    } */
     int i = start, j;
 
     while(i < contents.size()-2 && contents[i] != '\n') { 
@@ -96,12 +90,13 @@ void HTTPRequest::ParseHeadersAndBody(std::string contents, int start) {
         while(contents[i++] != '\n');
         std::string fst = contents.substr(start, j-start-1);
         std::string snd = contents.substr(j+1, i - j - 2);
-        //std::cout << "substrings created/ << " << fst << " << " << snd;
         headers[fst] = snd;
-        //std::cout << "i:" << i << "j:" << j << "\n" << fst << ": " << snd << "\n";
-        // std::cout << "'" << contents[i] << "'" << contents[j] << "'\n";
     }
+    body = contents.substr(i, contents.size()-i);
 }
+
+/// @brief Converts a HTTPRequest to an appropriately formatted string
+/// @return The string
 std::string HTTPRequest::FormatToSend() {
     std::string res = requestLine + "\r\n";
     for(auto it = headers.begin(); it != headers.end(); ++it) {
@@ -110,16 +105,19 @@ std::string HTTPRequest::FormatToSend() {
     return res + "\r\n";
 }
 
-HTTPRequest* format_request_for(std::string destination, std::string subdirectory) {
-    HTTPRequest* req = new HTTPRequest(1, ("GET " + subdirectory + " HTTP/1.1").c_str());
+/// @brief Creates the request line and headers for a HTTPRequest to the given destination/subdirectory
+/// @param destination The destination address
+/// @param resource The resource to query/access
+/// @return A pointer to a new HTTPRequest containing this information
+HTTPRequest* format_request_for(std::string destination, std::string resource) {
+    HTTPRequest* req = new HTTPRequest(1, ("GET " + resource + " HTTP/1.1").c_str());
 
     // add headers
     req->headers["Host"] = destination;
-    req->headers["User-Agent"] = "python-requests/2.25.1"; //"jarkov-1";
+    req->headers["User-Agent"] = "jarkov-client";
     req->headers["Accept-Encoding"] = "gzip, deflate";
     req->headers["Accept"] = "*/*";
     req->headers["Connection"] = "keep-alive";
-    //req->headers["Content-Type"] = "application/json";
     
     return req;
 }

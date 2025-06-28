@@ -7,6 +7,5 @@
 #include<unistd.h> // lets us close file descriptors
 #include<string>
 
-//int buffer_size = 256;
 
 #endif

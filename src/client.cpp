@@ -1,9 +1,16 @@
 #include<client.hpp>
-#include<arpa/inet.h> // move to header
 
+
+/// @brief Creates a new client
 Client::Client() {
     std::cout << "initialised client" << std::endl;
 }
+
+/// @brief Tries to connect to 'destination' on port 'port', and sends 'greeting'
+/// @param destination 
+/// @param greeting 
+/// @param port 
+/// @return An int error code
 int Client::Connect(std::string destination, std::string greeting, int port) {
     // same as server
     int client_socket = socket(AF_INET, SOCK_STREAM, 0);

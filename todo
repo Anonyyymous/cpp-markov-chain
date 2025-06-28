@@ -1,26 +1,12 @@
-test server seems to run an old version of the consumer function - doesnt give the same outputs as when ran through the real server
-
 commits
-    Tests created
+    Tests created/comments
     Everything else (general cleanup)
+    fix CI file (?)
 
+revert passing quiet into the consumer if it wasnt the issue?
 
-        --regurgitate word count is wrong
-        --make regurgitation take into account the input word count
-
-        move training readLine into processing loop
-
-make client use header for file size, so we always have enough space ???
-
-        make server enforce ? before parameters
-
-        server prompts not working, isnt being parsed properly?
-        parsing headers incorrectly
-        parse params properly (ignore & if we're inside 's)
-
-        server params (q)
-
-        replace punctuation in reqest (add something onto ascii value given to replace number iwth char)
+handle_sigterm and replace SIGKILL with SIGTERM for run-server?
+might be able to actually just kill pid and check the sigterm
 
 close file descriptors
 
@@ -28,6 +14,11 @@ make sure everything uses the same naming convention/make a style guide?
 
 give everything have stds
 
-        make server infinite
+remove Word class stuff
 
-1.5) remove Word class stuff
+
+change 'quiet' to 'debug' for continuity
+
+HTTPRequest->ParseReqyestType, make it support all request types -- enum?
+
+test with random punctuation (& and = inside prompts)

@@ -2,6 +2,7 @@
 #define CLIENT_H
 
 #include<networking.hpp>
+#include<arpa/inet.h>
 
 class Client {
     public: 

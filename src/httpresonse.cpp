@@ -1,7 +1,9 @@
 #include<httpresponse.hpp>
 
-
-
+/// @brief Creates a new HTTPResponse with the given code, headers, and contents
+/// @param status_code
+/// @param headers A map of headers that will be converted to the correct format
+/// @param result The body of the response
 HTTPResponse::HTTPResponse(int status_code, std::map<std::string, std::string> headers, std::string result) {
     // handle status line
     contents = "HTTP/1.1 " + std::to_string(status_code) + GetStatusString(status_code) + "\n";
@@ -15,6 +17,10 @@ HTTPResponse::HTTPResponse(int status_code, std::map<std::string, std::string> h
     // handle body
     contents += result;
 }
+
+/// @brief Returns a string based on the status code, for the first line of the response
+/// @param status_code 
+/// @return A string corresponding to the english meaning of the given status code
 std::string HTTPResponse::GetStatusString(int status_code) {
     switch(status_code) {
         case 200: {

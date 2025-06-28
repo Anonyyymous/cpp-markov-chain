@@ -11,10 +11,9 @@ using namespace std;
 class NChain {
     public:
         int length;
-        NChain(int length, bool debug);
+        bool debug = false;
         NChain(int length);
         NChain(int length, int default_soft_limit, int default_hard_limit);
-        //NChain(string filepath);
         bool Train(const string filepath);
         bool TrainDirectory(const string path);
         bool HasContext(const string context);
@@ -27,17 +26,14 @@ class NChain {
         bool SaveChain(string filepath);
         bool LoadChain(string filepath);
     private:
-        bool debug = false;
         int default_soft_limit, default_hard_limit;
 
         // negative, since previous versions saved the length first, and this cannot be negative, so older models cannot be misinterpreted as newer
         const int save_format_version = -1;
         string path = "";
-        //void Initialise(int length, bool debug, int default_soft_limit, int default_hard_limit);
         int InitialiseWordBuffer(const string input, vector<string>* word_buffer);
         Word* PickWord(const string context);
         Word* AddWord(const string context, const string newWord);
-        //vector<Word*> words_;
         map<string, vector<Word*>> usedWords_;
 };
 

@@ -1,11 +1,16 @@
 #include<server.hpp>
 
 
+/// @brief Creates a new server 
+/// @param port The port to run on later
+/// @param quiet Whether or not to print extra information to the terminal
 Server::Server(int port, bool quiet) : port(port), quiet(quiet) {
     if(!quiet)
         std::cout << "server created at port " << port << std::endl;
 }
 
+/// @brief Starts a server listening on the given port, that will simply receive 1 connection (printing it if debug is enabled), then close
+/// @return An int error code
 int Server::StartServer() {
     // important to note that sockets (client_socket, serverSocket) are stored as file descriptors.
     // this is also why documentation refers to these as ..._fd
@@ -64,9 +69,3 @@ int Server::StartServer() {
 
     return 0;
 }
-
-/* int main() {
-    Server server(6789);
-    
-    return 0;
-} */

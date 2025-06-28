@@ -9,13 +9,19 @@
 
 using namespace std;
 
+/// @brief A way to cache models, without having to load them every time
 map<string, NChain*> models;
 
+/// @brief The path from the current directory to the directory containing models
 static string model_path;
+/// @brief The port to open to the server on
 static int port;
 #define DEFAULT_PORT 6678
 #define DEFAULT_MODEL_PATH "../models"
 
+/// @brief Converts encoded HTTP characters to their unicode equivalent ("%20" -> ' ')
+/// @param prompt The prompt to parse
+/// @return The prompt, with encoded characters replaced
 string parse_punctuation(string prompt) {
     if(prompt == "")
         return "''";
@@ -34,9 +40,19 @@ string parse_punctuation(string prompt) {
     return prompt;  
 }
 
+/// @brief Converts the given result and status code to a string formatted in JSON
+/// @param result The result of chain regurgitation, or an error message
+/// @param status_code The HTTP status code
+/// @return A string formatted in JSON
 string convert_to_json(string result, int status_code) {
     return "{\"status\":" + to_string(status_code) + ",\"response\":\"" + result + "\"}";
 }
+
+/// @brief Tries to parse the given parameter of a HTTPRequest to an int
+/// @param request 
+/// @param param_name The name of the parameter to parse
+/// @param value A pointer to the variable to be written to
+/// @return True if the pass was a success/the parameter wasnt included in the first place, or false if parsing failed
 bool can_parse_request_param(HTTPRequest request, string param_name, int* value) {
     try {
         *value = std::stoi(request.params.at(param_name));
@@ -50,6 +66,10 @@ bool can_parse_request_param(HTTPRequest request, string param_name, int* value)
     }
 }
 
+/// @brief Takes a HTTPRequest and extracts the query parameters, using them to query a model, and return the result or an appropriate error message
+/// @param request The HTTPRequest to be parsed
+/// @param quiet Whether or not to display information to the terminal
+/// @return A HTTPResponse containing either an error code/message, or the result of some chain regurgitation
 HTTPResponse process_request(HTTPRequest request, bool quiet) {
     map<string, string> headers;
     headers["Accept-Ranges"] = "bytes";
@@ -61,8 +81,6 @@ HTTPResponse process_request(HTTPRequest request, bool quiet) {
     int i = request.requestLine.find("/?")+1;
 
     int soft_limit = -1, hard_limit = -1;
-
-    cout << "responding to query\n\n";
 
     if(!quiet) {
         cout << "---------------------------------------------------\nHeaders" << endl;
@@ -100,8 +118,9 @@ HTTPResponse process_request(HTTPRequest request, bool quiet) {
             // load model and cache it
             model = LoadChain(target_model);
             models[target_model] = model;
-            // if(!quiet)
+            if(!quiet)
                 cout << "model: " << target_model << " loaded" << endl;
+            model->debug = !quiet;
         } else // dont search for it if we already just loaded
             model = models[target_model];
 
@@ -119,18 +138,18 @@ HTTPResponse process_request(HTTPRequest request, bool quiet) {
                 if(!quiet)
                     cout << "requesting: '" << prompt << "' from: '" << target_model << "'" << endl;
 
-                result = model->Regurgitate(prompt);
+                result = model->Regurgitate(prompt, soft_limit, hard_limit);
             } else {
                 status_code = 400;
                 result = "couldnt parse prompt (" + prompt + "), it should be wrapped in 's. model = " + model_path;
             }
-            // result = convert_to_json(model->Regurgitate(input), 200);
         }
     }
-    std::cout << "returning " << result << endl;
     return HTTPResponse(status_code, headers, convert_to_json(result, status_code));
 }
 
+/// @brief Makes a new config file at the given location, with the default values
+/// @param config_path 
 void make_config(string config_path) {
     // default values
     port = DEFAULT_PORT;
@@ -148,6 +167,10 @@ void make_config(string config_path) {
     cout << "config file created" << endl;
 }
 
+/// @brief Tries to read a config file, and, if possible, loads the contents into the appropriate static variables.
+/// If the file exists but reading fails, the program will overwrite this with the default file.
+/// If The file cannot be found, a new config file will be created at the given path.
+/// @param config_path 
 void process_config(string config_path) {
     if(filesystem::exists(config_path)) {
         // read from file

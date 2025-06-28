@@ -6,13 +6,16 @@
 #include<utility>
 #include<filesystem>
 
-
-NChain::NChain(int length, bool debug) : length(length), debug(debug) {
-    //
-}
+/// @brief Creates a new chain with the given length. Debug defaults to false
+/// @param length The length of the new chain
 NChain::NChain(int length) : length(length), default_soft_limit(50), default_hard_limit(100), debug(false) {
     //
 }
+
+/// @brief Creates a new chain with the given length, default soft limit, and default hard limit. Debug defaults to false
+/// @param length 
+/// @param default_soft_limit 
+/// @param default_hard_limit 
 NChain::NChain(int length, int default_soft_limit, int default_hard_limit) : length(length), 
     default_soft_limit(default_soft_limit), default_hard_limit(default_hard_limit), debug(false) {
     //
@@ -45,17 +48,6 @@ string concat_vector(vector<string>* vec, int max_index) {
             
     return res + vec->at(max_index-1);
 }
-
-/* void shift_left(vector<string>* vec) {
-    for(int i = 0; i < vec->size()-1; i++) {
-        vec->at(i) = vec->at(i+1);
-    }
-}
-void shift_right(vector<string>* vec) {
-    for(int i = vec->size()-1; i > 0; i--) {
-        vec->at(i) = vec->at(i+1);
-    }
-} */
 
 /// @brief Adds a mapping between some context and the next word
 /// @param context The context of the word
@@ -121,7 +113,6 @@ bool NChain::Train(const string filepath) {
 
             j = i+1;
 
-            //if(word_buffer.size() > 0) {
             // dont want to include the space in the first one
             string context_so_far = "";
             if(word_buffer.size() > 0)
@@ -136,7 +127,6 @@ bool NChain::Train(const string filepath) {
                 context_so_far = word_buffer[i] + " " + context_so_far;
                 AddWord(context_so_far, word);
             }
-            //}
 
             if(word_buffer.size() >= length)
                 word_buffer.erase(word_buffer.begin());
@@ -187,11 +177,12 @@ int NChain::InitialiseWordBuffer(const string input, vector<string>* word_buffer
             j = i;
             if(debug)
                 cout << "processing word: '" << start << "' - " << word_buffer->size() << "/" << length << endl;
-
             
             if(!HasContext(start)) {
-                cout << "dont have word: '" << start << "'" <<  endl;
-                break; // if we don't have a word, use the buffer as it is, for some continuity rather than none
+                if(debug)
+                    cout << "dont have word: '" << start << "'" <<  endl;
+                buffer_filled = true; // if we don't have a word, use the buffer as it is, for some continuity rather than none
+                continue;
             }
 
             word_buffer->insert(word_buffer->begin(), start);
@@ -232,6 +223,19 @@ string NChain::Regurgitate(string input, int soft_limit, int hard_limit) {
     return Regurgitate(input, soft_limit, hard_limit, nullptr);
 }
 
+/// @brief Returns true if the character given is either a full stop, exclamation mark, or question mark
+/// @param inp The character to check against
+/// @return True if the character given is either a full stop, exclamation mark, or question mark, else false
+bool isTerminator(char inp) {
+    const std::vector<char> terminators = {'.', '?', '!'};
+
+    for(char ter : terminators)
+        if(inp == ter)
+            return true;
+
+    return false;
+}
+
 /// @brief Regurgitates based on some input, using the given default soft/hard limits
 /// @param input The input to regurgitate from
 /// @param soft_limit The soft limit of this output - once the soft limit is reached, if a word ends in a full stop, the chain will end
@@ -241,13 +245,14 @@ string NChain::Regurgitate(string input, int soft_limit, int hard_limit) {
 string NChain::Regurgitate(string input, int soft_limit, int hard_limit, int* words_used) {
     vector<string> word_buffer;
     word_buffer.reserve(length); // avoids resizing later
+
     if(soft_limit < 0)
         soft_limit = default_soft_limit;
-    if(hard_limit <= 0)
+    if(hard_limit < 0)
         hard_limit = default_hard_limit;
 
     Word* word; 
-    string res = input; // just replace res with input atp
+    string res = input; // just replace res with input atp TODO
 
     int i = InitialiseWordBuffer(input, &word_buffer);
 
@@ -269,7 +274,8 @@ string NChain::Regurgitate(string input, int soft_limit, int hard_limit, int* wo
         // if PickWord didnt find anything
         if(word == nullptr) {
             // if we reach the end of the training data
-            cout << "reached the end of the training data" << endl;
+            if(debug)
+                cout << "reached the end of the training data" << endl;
             break;
         }
 
@@ -282,24 +288,24 @@ string NChain::Regurgitate(string input, int soft_limit, int hard_limit, int* wo
         word_buffer.push_back(nxt);
 
         res += nxt;
-        if(i > soft_limit && nxt[nxt.size()-1] == '.') {
-            cout << "quitting regurgitation early after full stop was found after soft limit of " << soft_limit << endl;
+        if(i >= soft_limit && isTerminator(nxt[nxt.size()-1])) {
+            if(debug)
+                cout << "quitting regurgitation early after full stop was found after soft limit of " << soft_limit << endl;
             break;
         }
     }
     // check for hard limit / change the ending depending on whether it was reached
-    if(i == hard_limit) {
-        cout << "hard limit reached: " << hard_limit << endl;
+    if(i >= hard_limit && !isTerminator(res[res.size()-1])) {
+        if(debug)
+            cout << "hard limit reached: " << hard_limit << endl;
         res += "...";
     }
-    cout << "chain of length " << i << " extra words generated" << endl;
+    if(debug)
+        cout << "chain of length " << i << " extra words generated" << endl;
     if(words_used != nullptr)
         *words_used = i;
     return res;
 }
-
-// changes some setting (e.g. default hard/soft limit)
-// all of the input is parsed inside this function, including the 'c' that lets users select this
 
 /// @brief Changes an option in the chain. Intended for use in the terminal
 /// @param input The string containing the details about what to change/how
@@ -470,13 +476,15 @@ bool NChain::LoadChain(const string filepath) {
 /// @param filepath The filepath to load from
 /// @return A pointer to the chain
 NChain* LoadChain(const string filepath) {
-    NChain* chain = new NChain(-1, -1);
+    NChain* chain = new NChain(-1);
     if(chain->LoadChain(filepath)) {
         return chain;
     }
     return nullptr;
 }
 
+/// @brief Creates a chain based on terminal inputs (only takes chain length)
+/// @return A pointer to the new chain created
 NChain* ParseChain() {
     string inp;
     int length;
@@ -493,9 +501,6 @@ NChain* ParseChain() {
         } catch (exception e) {
             cout << "sorry, thats not a valid length. Enter 'q' to quit" << endl;
         }
-
-        // clearing input buffer, idk how eles
-        //while(getchar() != '\n');
     }
 
     return new NChain(length);
