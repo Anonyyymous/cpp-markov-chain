@@ -10,7 +10,7 @@ jobs:
 
   build: 
     name: Build and Push Container Image # the job's full name
-    runs-on: ubuntu-latest # the OS that this job runs on
+    runs-on: alpine-latest # the OS that this job runs on
     
     permissions: 
       contents: read
@@ -19,7 +19,7 @@ jobs:
   # the steps that this job consists of
     steps:
     - name: Checkout  # check out our repo
-      uses: actions/checkout@v3a
+      uses: actions/checkout@v3
     
     - name: Log in to the container registry
       uses: docker/login-action@v2
