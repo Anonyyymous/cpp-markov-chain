@@ -1,8 +1,7 @@
 /models/
+!/models/example.jkc
 /training-data/
-/temp-training/
 /.vscode
 /build/*
 !/build/CMakeLists.txt
-/unofficial-styleguide
 !.github/workflows/ci.yml
