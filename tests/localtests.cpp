@@ -6,13 +6,9 @@
 #include<signal.h>
 
 int main() {
-    // delete file if it exists, then train a new model on the input
     std::cout << "starting tests" << std::endl;
 
-    // make a way to train/save the model in the command line
-    // do that
     NChain* chain = new NChain(2, 4, 5);
-    chain->debug = true;
     std::cout << "Chain created..." << std::endl;
 
     if(!chain->Train("../tests/testing-data")) {
@@ -37,14 +33,13 @@ int main() {
 
     std::cout << std::endl << "--Base tests complete--" << std::endl << std::endl;
 
-    // run the server
-    int result = -1;
+    //int result = -1;
 
     pid_t pid = fork();
     if (pid == 0) {
         const int result = std::system("./run-server -c ../tests/server.conf");
         std::cout << "server closed" << std::endl;
-        return 0;
+        return -1;
     }
 
     const int success = 5;
@@ -54,7 +49,7 @@ int main() {
     std::cout << "python test status code: " << std::to_string(python_result) << std::endl;
 
     if(python_result == success) {
-        result = 1;
+        //result = 1;
         std::cout << "--tests successful--" << std::endl;
     } else 
         std::cout << "--tests unsuccessful--" << std::endl;
@@ -69,5 +64,5 @@ int main() {
     // using the pid of the server just didnt work for some reason
     kill(0, SIGKILL); // will also quit program
 
-    return result;
+    return 0;
 }

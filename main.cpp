@@ -15,11 +15,17 @@ std::string parse_arg(std::string* str) {
 void free_chain(NChain* chain) {
     if(chain != nullptr) 
         free(chain);
-
-    std::cout << "old chain freed\n"; 
 }
 
 int main(int argc, char** argv) {
+    NChain* chain2 = LoadChain("../tests/test-mdl.jkc");
+    std::cout << chain2->Regurgitate("") << std::endl;
+    std::cout << chain2->Regurgitate("Tell") << std::endl;
+    std::cout << chain2->Regurgitate("Tell him to go") << std::endl;
+
+
+    return 0;
+
     std::srand(std::time(NULL));
     
     NChain* chain = nullptr;

@@ -43,3 +43,6 @@ In this prompt, the model queried would be (server.model-directory + '/mdl1.jkc'
 ## Testing The Chain
 The chain test suite first trains a model on a very small input, and tests it locally, including checking for random chance (one input phrase having multiple output words).
 Next, similar tests are done via the API through python and the requests package.
+
+Sometimes the code will throw errorno 111, meaning the server didnt get the socket it was supposed to, so when the tests try to access the socket, they can't. Just give it a bit and try again later.
+This can also happen while doing ./run-server, though no error message will appear, so just stop the process, wait a bit, and try again.

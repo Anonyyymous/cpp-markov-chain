@@ -163,9 +163,11 @@ bool NChain::HasContext(const std::string context) {
 /// @param word_buffer The buffer to fill
 /// @return The number of words in the input
 int NChain::InitialiseWordBuffer(std::string input, std::vector<std::string>* word_buffer) {
-    std::string start;
+    if(input.length() == 0)
+        return 0;
     int j = input.length();
 
+    std::string start;
     int word_count = 0;
     bool buffer_filled = false;
 
@@ -213,7 +215,7 @@ std::string NChain::PickWord(std::string context) {
 
 /// @brief Regurgitates based on some input, using the chain's default soft/hard limits
 /// @param input The input to regurgitate from
-/// @return The resultant std::string (includes the input)
+/// @return The resultant string (includes the input)
 std::string NChain::Regurgitate(std::string input) {
     return Regurgitate(input, default_soft_limit, default_hard_limit, nullptr);
 }
@@ -222,7 +224,7 @@ std::string NChain::Regurgitate(std::string input) {
 /// @param input The input to regurgitate from
 /// @param soft_limit The soft limit of this output - once the soft limit is reached, if a word ends in a full stop, the chain will end
 /// @param hard_limit The hard limit of this output - once the hard limit is reached, the chain stops
-/// @return The resultant std::string (includes the input)
+/// @return The resultant string (includes the input)
 std::string NChain::Regurgitate(std::string input, int soft_limit, int hard_limit) {
     return Regurgitate(input, soft_limit, hard_limit, nullptr);
 }
@@ -230,7 +232,7 @@ std::string NChain::Regurgitate(std::string input, int soft_limit, int hard_limi
 /// @brief Returns true if the character given is either a full stop, exclamation mark, or question mark
 /// @param inp The character to check against
 /// @return True if the character given is either a full stop, exclamation mark, or question mark, else false
-bool isTerminator(char inp) {
+bool is_terminator(char inp) {
     const std::vector<char> terminators = {'.', '?', '!'};
 
     for(char ter : terminators)
@@ -245,7 +247,7 @@ bool isTerminator(char inp) {
 /// @param soft_limit The soft limit of this output - once the soft limit is reached, if a word ends in a full stop, the chain will end
 /// @param hard_limit The hard limit of this output - once the hard limit is reached, the chain stops
 /// @param words_used The words contained in the total output, in case this can be used for downstream tasks, such as for a http request
-/// @return The resultant std::string (includes the input)
+/// @return The resultant string (includes the input)
 std::string NChain::Regurgitate(std::string input, int soft_limit, int hard_limit, int* words_used) {
     std::vector<std::string> word_buffer;
     word_buffer.reserve(length); // avoids resizing later
@@ -279,21 +281,22 @@ std::string NChain::Regurgitate(std::string input, int soft_limit, int hard_limi
             break;
         }
 
-        input +=  " "; // added after the if statement to remove trailing spaces
+        if(i > 0)
+            input +=  " "; // added after the if statement to remove trailing spaces
 
         if(word_buffer.size() >= length)
             word_buffer.erase(word_buffer.begin()); // also shifts the array
         word_buffer.push_back(word);
 
         input += word;
-        if(i >= soft_limit && isTerminator(word.at(word.size()-1))) {
+        if(i >= soft_limit && is_terminator(word.at(word.size()-1))) {
             if(debug)
                 std::cout << "quitting regurgitation early after full stop was found after soft limit of " << soft_limit << std::endl;
             break;
         }
     }
     // check for hard limit / change the ending depending on whether it was reached
-    if(i >= hard_limit && !isTerminator(input[input.size()-1])) {
+    if(i >= hard_limit && !is_terminator(input[input.size()-1])) {
         if(debug)
             std::cout << "hard limit reached: " << hard_limit << std::endl;
         input += "...";
