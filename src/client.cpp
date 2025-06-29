@@ -32,10 +32,6 @@ int Client::Connect(std::string destination, std::string greeting, int port) {
         return -1;
     }
 
-    std::cout << "connected to server with " << client_socket << std::endl;
-    std::cout << "client sock/peer name: " << getsockname(client_socket, (sockaddr*)&client_address, (socklen_t*) sizeof(client_address)) << ", " 
-        << getpeername(client_socket, (sockaddr*)&client_address, (socklen_t*) sizeof(client_address)) << std::endl;
-
     // send takes a file descriptor, a const char*, and the size of the char array, + some flags
     // just used write, which works on any file descriptor
     if(write(client_socket, greeting.c_str(), greeting.size()) < 0) {
@@ -53,9 +49,3 @@ int Client::Connect(std::string destination, std::string greeting, int port) {
 
     return 0;
 }
-
-/* int main() {
-    Client client();
-
-    return 0;
-} */

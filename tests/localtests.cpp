@@ -5,9 +5,6 @@
 #include<cstdlib>
 #include<signal.h>
 
-
-using namespace std;
-
 int main() {
     // delete file if it exists, then train a new model on the input
     std::cout << "starting tests" << std::endl;
@@ -30,7 +27,7 @@ int main() {
     }
     std::cout << "Chain saved..." << std::endl;
 
-    string regurgitation = chain->Regurgitate("Tell him");
+    std::string regurgitation = chain->Regurgitate("Tell him");
     if(regurgitation == "Tell him to go eat shit, Johnny." || regurgitation == "Tell him yourself.")  
         std::cout << "Initial test complete" << std::endl;
     else {
@@ -45,16 +42,16 @@ int main() {
 
     pid_t pid = fork();
     if (pid == 0) {
-        const int result = std::system("./run-server -c ../tests/server.conf q");
+        const int result = std::system("./run-server -c ../tests/server.conf");
         std::cout << "server closed" << std::endl;
         return 0;
     }
 
     const int success = 5;
-    cout << "server running on pid: " << pid << std::endl;
+    std::cout << "server running on pid: " << pid << std::endl;
     const int python_result = std::system("python3.10 ../tests/testapi.py") >> 8;
 
-    std::cout << "python test status code: " << to_string(python_result) << std::endl;
+    std::cout << "python test status code: " << std::to_string(python_result) << std::endl;
 
     if(python_result == success) {
         result = 1;

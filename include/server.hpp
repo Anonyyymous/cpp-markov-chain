@@ -5,14 +5,14 @@
 
 class Server {
     public:
-        Server(int port_, bool quiet = false);
+        Server(int port_, bool debug = false);
         int port;
 
         int StartServer();
 
     protected:
         int serverSocket;
-        bool quiet;
+        bool debug;
 };
 
 #endif

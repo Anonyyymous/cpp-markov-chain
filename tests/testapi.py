@@ -38,16 +38,17 @@ def starts_with_one_of(str, prefixes):
             return True
     return False
 
+def successful_prompt(req):
+    return starts_with_one_of(req['response'], ["Tell him", "EAT SHIT"])
+
 tests = [
-    #Test("model=test.jkc&prompt='EAT SHIT'", {'status': 200, 'response': "Model 'test' doesn't exist"}, "valid model path without prompt"),
-    #Test("", partial(status_equals, target_status=404, response="Model '' doesn't exist"), "empty parameters"),
-    Test("", (lambda req: req == {'status': 404, 'response': "Model '' doesn't exist"}), "empty parameters"),
-    Test("model=test-mdl", (lambda req: req == {'status': 404, 'response': "Model 'test-mdl' doesn't exist"}), "invalid model path"),
-    Test("model=test-mdl.jkc", call_was_successful, "valid model path without prompt"),
+    Test("", (lambda req: equal(req, "Model '' doesn't exist")), "empty parameters"),
+    Test("model=test-mdl", (lambda req: equal(req, "Model 'test-mdl' doesn't exist")), "invalid model path"),
+    Test("model=test-mdl.jkc", successful_prompt, "valid model path without prompt"),
     Test("model=test-mdl.jkc&prompt='EAT SHIT,'", (lambda req: equal(req, "EAT SHIT, ASSHOLE! FALL OFF...")), "valid model path with prompt"),
     Test("model=test-mdl.jkc&prompt='Beep boop'", (lambda req: starts_with_one_of(req['response'], ["Beep boop Tell him", "Beep boop EAT SHIT"])), "untrained prompt"),
-    Test("model=test-mdl.jkc&prompt='EAT SHIT,'&soft_limit=a", (lambda req: req == {'status': 400, 'response': "couldnt parse hard/soft limit"}), "testing invalid soft limit"),
-    Test("model=test-mdl.jkc&prompt='EAT SHIT,'&hard_limit=a", (lambda req: req == {'status': 400, 'response': "couldnt parse hard/soft limit"}), "testing invalid hard limit"),
+    Test("model=test-mdl.jkc&prompt='EAT SHIT,'&soft_limit=a", (lambda req: equal(req, "couldnt parse hard/soft limit")), "testing invalid soft limit"),
+    Test("model=test-mdl.jkc&prompt='EAT SHIT,'&hard_limit=a", (lambda req: equal(req, "couldnt parse hard/soft limit")), "testing invalid hard limit"),
     Test("model=test-mdl.jkc&prompt='EAT SHIT,'&soft_limit=2", (lambda req: equal(req, "EAT SHIT, ASSHOLE!")), "testing valid soft limit"),
     Test("model=test-mdl.jkc&prompt='EAT SHIT,'&hard_limit=2", (lambda req: equal(req, "EAT SHIT,...")), "testing valid hard limit"),
     Test("model=test-mdl.jkc&prompt='EAT SHIT,'&hard_limit=3&soft_limit=3", (lambda req: equal(req, "EAT SHIT, ASSHOLE!")), "testing lower hard limit")

@@ -3,9 +3,9 @@
 
 /// @brief Creates a new server 
 /// @param port The port to run on later
-/// @param quiet Whether or not to print extra information to the terminal
-Server::Server(int port, bool quiet) : port(port), quiet(quiet) {
-    if(!quiet)
+/// @param debug Whether or not to print extra information to the terminal
+Server::Server(int port, bool debug) : port(port), debug(debug) {
+    if(debug)
         std::cout << "server created at port " << port << std::endl;
 }
 
@@ -60,7 +60,7 @@ int Server::StartServer() {
     // takes the client socket, a buffer, and flags (we can choose to peek data and not read it, or wait until the full message arrives)
     recv(client_socket, buffer, sizeof(buffer), 0); // we can use unistd.read/write for these operations, since they both do the same thing
     
-    if(!quiet)
+    if(debug)
         std::cout << "client message: " << buffer << std::endl;
 
 

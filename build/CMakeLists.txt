@@ -28,7 +28,3 @@ include_directories(${HEADERS})
 add_executable(run-tests ${TESTS})
 add_executable(run-server ${SERVER})
 add_executable(${PROJECT_NAME} ${SOURCES})
-
-# target_link_libraries(run-server stdc++fs)
-# basicaly just include_directories, but for specific builds, though each one uses basically all of the stuff (may exclude networking from main?)
-# target_include_directories(${PROJECT_NAME} PUBLIC ${HEADERS})

@@ -1,4 +1,4 @@
-#include"nchain.hpp"
+#include<nchain.hpp>
 #include<fstream>
 #include<iostream>
 #include<map>
@@ -23,21 +23,21 @@ NChain::NChain(int length, int default_soft_limit, int default_hard_limit) : len
 
 /// @brief Displays the details of the chain, including it's context length, soft/hard limits, and the saved path, if applicable
 void NChain::DisplayDetails() {
-    cout << length << "-chain with an output count of: " << usedWords_.size() << endl << "soft_limit: " << default_soft_limit << ", hard_limit: " << default_hard_limit << endl;
+    std::cout << length << "-chain with an output count of: " << usedWords_.size() << std::endl << "soft_limit: " << default_soft_limit << ", hard_limit: " << default_hard_limit << std::endl;
     if(path != "")
-        cout << "path: " << path << endl;
+        std::cout << "path: " << path << std::endl;
 }
 
-/// @brief Concatenates each eleement in a string vector together
-/// @param vec The vector to iterate through
+/// @brief Concatenates each eleement in a std::string std::vector together
+/// @param vec The std::vector to iterate through
 /// @param max_index The maximum element to concatenate up to
-/// @return The result of string combinations
-string concat_vector(vector<string>* vec, int max_index) {
-    string res = "";
+/// @return The result of std::string combinations
+std::string concat_vector(std::vector<std::string>* vec, int max_index) {
+    std::string res = "";
     if(max_index < 0)
         max_index = 0;
 
-    max_index = min(max_index, (int) vec->size());
+    max_index = std::min(max_index, (int) vec->size());
 
     if(vec->size() == 0)
         return res;
@@ -53,30 +53,31 @@ string concat_vector(vector<string>* vec, int max_index) {
 /// @param context The context of the word
 /// @param new_word The word to map to
 /// @return The result of the addition
-Word* NChain::AddWord(const string context, const string new_word) {
-    Word* res = new Word(new_word);
-    if(usedWords_.count(context) == 0) {
-        usedWords_[context] = vector<Word*> {res};
+std::string NChain::AddWord(std::string context, std::string new_word) {
+    if(!HasContext(context)) {
+        usedWords_[context] = std::vector<std::string> {new_word};
     } else
-        usedWords_[context].push_back(res);
-    return res;
+        usedWords_[context].push_back(new_word);
+    return new_word;
 }
 
 /// @brief Executes the Train function on the entire directory
 /// @param path The directory root to iterate over
 /// @return True if it was successful, false otherwise
-bool NChain::TrainDirectory(const string path) {
-    if(!filesystem::exists(path)) {
-        cout << "path not found: " << path << endl;
+bool NChain::TrainDirectory(std::string path) {
+    if(!std::filesystem::exists(path)) {
+        std::cout << "path not found: " << path << std::endl;
         return false;
     }
-    cout << "trying to train on directory: " << path << endl;
+    std::cout << "trying to train on directory: " << path << std::endl;
+    if(!std::filesystem::is_directory(path))
+        return Train(path);
 
-    for(const auto& entry : filesystem::directory_iterator(path)) {
+    for(const auto& entry : std::filesystem::directory_iterator(path)) {
         if(!Train(entry.path()))
             return false;
 
-        cout << "file: " << entry.path() << " trained" << endl;
+        std::cout << "file: " << entry.path() << " trained" << std::endl;
     }
     return true;
 }
@@ -84,22 +85,22 @@ bool NChain::TrainDirectory(const string path) {
 /// @brief Adds mappings between word contexts and words, for each line in a file
 /// @param filepath The path of the file to read
 /// @return True if the training was a success, false otherwise
-bool NChain::Train(const string filepath) {
+bool NChain::Train(const std::string filepath) {
     if(!std::filesystem::exists(filepath)) {
         std::cout << "Unfortunately, the file " << filepath << " could not be found" << std::endl;
         return false;
     }
-    vector<string> word_buffer;
+    std::vector<std::string> word_buffer;
     word_buffer.reserve(length);
-    ifstream file(filepath);
+    std::ifstream file(filepath);
 
     if(!file.is_open()) {
-        cout << "couldnt find file for nchain (" << length << "): " << filepath << endl;
+        std::cout << "couldnt find file for nchain (" << length << "): " << filepath << std::endl;
         return false;
     }
 
-    string line;
-    while(getline(file, line)) {
+    std::string line;
+    while(std::getline(file, line)) {
         if(line == "\n")
             continue;
         int j = 0;
@@ -109,23 +110,26 @@ bool NChain::Train(const string filepath) {
             if(line[i] != ' ' && i != line.length())
                 continue;
 
-            string word = line.substr(j, i-j);
+            std::string word = line.substr(j, i-j);
 
             j = i+1;
 
             // dont want to include the space in the first one
-            string context_so_far = "";
+            std::string context_so_far = "";
             if(word_buffer.size() > 0)
                 context_so_far = word_buffer[word_buffer.size()-1];
 
             AddWord(context_so_far, word);
 
             if(debug)
-                cout << "trained on '" << context_so_far << "'" << endl;
+                std::cout << "trained on '" << context_so_far << "' -> '" << word << "'" << std::endl;
 
             for(int i = word_buffer.size()-2; i >= 0; i--) {
                 context_so_far = word_buffer[i] + " " + context_so_far;
                 AddWord(context_so_far, word);
+
+                if(debug)
+                    std::cout << "trained on '" << context_so_far << "' -> '" << word << "'" << std::endl;
             }
 
             if(word_buffer.size() >= length)
@@ -136,11 +140,11 @@ bool NChain::Train(const string filepath) {
         }
         // finish off the contents of the word buffer
         while(word_buffer.size() > 1) {
-            string context = concat_vector(&word_buffer, word_buffer.size()-1), word = word_buffer[word_buffer.size()-1];
+            std::string context = concat_vector(&word_buffer, word_buffer.size()-1), word = word_buffer[word_buffer.size()-1];
             AddWord(context, word);
             word_buffer.erase(word_buffer.begin());
             if(debug)
-                cout << context << " -> " << word << endl;
+                std::cout << context << " -> " << word << std::endl;
         }
     }
     file.close();
@@ -150,7 +154,7 @@ bool NChain::Train(const string filepath) {
 /// @brief Checks whether the chain contains a mapping between a context and any words
 /// @param context The context to check against
 /// @return True if a mapping exist, false otherwise
-bool NChain::HasContext(const string context) {
+bool NChain::HasContext(const std::string context) {
     return usedWords_.count(context) > 0;
 }
 
@@ -158,8 +162,8 @@ bool NChain::HasContext(const string context) {
 /// @param input The input to process
 /// @param word_buffer The buffer to fill
 /// @return The number of words in the input
-int NChain::InitialiseWordBuffer(const string input, vector<string>* word_buffer) {
-    string start;
+int NChain::InitialiseWordBuffer(std::string input, std::vector<std::string>* word_buffer) {
+    std::string start;
     int j = input.length();
 
     int word_count = 0;
@@ -176,11 +180,11 @@ int NChain::InitialiseWordBuffer(const string input, vector<string>* word_buffer
             
             j = i;
             if(debug)
-                cout << "processing word: '" << start << "' - " << word_buffer->size() << "/" << length << endl;
+                std::cout << "processing word: '" << start << "' - " << word_buffer->size() << "/" << length << std::endl;
             
             if(!HasContext(start)) {
                 if(debug)
-                    cout << "dont have word: '" << start << "'" <<  endl;
+                    std::cout << "dont have word: '" << start << "'" <<  std::endl;
                 buffer_filled = true; // if we don't have a word, use the buffer as it is, for some continuity rather than none
                 continue;
             }
@@ -191,26 +195,26 @@ int NChain::InitialiseWordBuffer(const string input, vector<string>* word_buffer
         }
     }
     if(debug)
-        cout << word_count << " words in the input" <<endl;
+        std::cout << word_count << " words in the input" << std::endl;
     return word_count;
 }
 
 /// @brief Picks a word based on some context
 /// @param context The context to pick based on
 /// @return A pointer to the word selected, or nullptr if no such mapping exists
-Word* NChain::PickWord(string context) {
+std::string NChain::PickWord(std::string context) {
     if(!HasContext(context)) // if its not in the map
     {
-        return nullptr;
+        return "";
     }
-    vector<Word*> words = usedWords_.at(context);
+    std::vector<std::string> words = usedWords_.at(context);
     return words[rand() % words.size()];
 }
 
 /// @brief Regurgitates based on some input, using the chain's default soft/hard limits
 /// @param input The input to regurgitate from
-/// @return The resultant string (includes the input)
-string NChain::Regurgitate(string input) {
+/// @return The resultant std::string (includes the input)
+std::string NChain::Regurgitate(std::string input) {
     return Regurgitate(input, default_soft_limit, default_hard_limit, nullptr);
 }
 
@@ -218,8 +222,8 @@ string NChain::Regurgitate(string input) {
 /// @param input The input to regurgitate from
 /// @param soft_limit The soft limit of this output - once the soft limit is reached, if a word ends in a full stop, the chain will end
 /// @param hard_limit The hard limit of this output - once the hard limit is reached, the chain stops
-/// @return The resultant string (includes the input)
-string NChain::Regurgitate(string input, int soft_limit, int hard_limit) {
+/// @return The resultant std::string (includes the input)
+std::string NChain::Regurgitate(std::string input, int soft_limit, int hard_limit) {
     return Regurgitate(input, soft_limit, hard_limit, nullptr);
 }
 
@@ -240,10 +244,10 @@ bool isTerminator(char inp) {
 /// @param input The input to regurgitate from
 /// @param soft_limit The soft limit of this output - once the soft limit is reached, if a word ends in a full stop, the chain will end
 /// @param hard_limit The hard limit of this output - once the hard limit is reached, the chain stops
-/// @param words_used The words contained in the total output
-/// @return The resultant string (includes the input)
-string NChain::Regurgitate(string input, int soft_limit, int hard_limit, int* words_used) {
-    vector<string> word_buffer;
+/// @param words_used The words contained in the total output, in case this can be used for downstream tasks, such as for a http request
+/// @return The resultant std::string (includes the input)
+std::string NChain::Regurgitate(std::string input, int soft_limit, int hard_limit, int* words_used) {
+    std::vector<std::string> word_buffer;
     word_buffer.reserve(length); // avoids resizing later
 
     if(soft_limit < 0)
@@ -251,82 +255,80 @@ string NChain::Regurgitate(string input, int soft_limit, int hard_limit, int* wo
     if(hard_limit < 0)
         hard_limit = default_hard_limit;
 
-    Word* word; 
-    string res = input; // just replace res with input atp TODO
-
     int i = InitialiseWordBuffer(input, &word_buffer);
 
-
-    string test = concat_vector(&word_buffer, word_buffer.size());
-    if(debug)
-        cout << "original input: '" << input << "', parsed input: '" << test << "'" <<  endl;
+    if(debug) {
+        std::string initial_context = concat_vector(&word_buffer, word_buffer.size());
+        std::cout << "original input: '" << input << "', parsed input: '" << initial_context << "'" <<  std::endl;
+    }
 
     // once we reach the hard limit, stop immediately, else go until a full stop after the soft limit, or end of data is found
     for(i = i; i < hard_limit; i++) {
-        string context = concat_vector(&word_buffer, word_buffer.size());
+        std::string context = concat_vector(&word_buffer, word_buffer.size());
 
         if(debug)
-            cout << "generated context: '" << context << "' " << word_buffer.size() << "/" << length << endl;
-
-        string nxt = "";
+            std::cout << "generated context: '" << context << "' " << word_buffer.size() << "/" << length << std::endl;
         
-        word = PickWord(context);
+        std::string word = PickWord(context);
+
         // if PickWord didnt find anything
-        if(word == nullptr) {
+        if(word == "") {
             // if we reach the end of the training data
             if(debug)
-                cout << "reached the end of the training data" << endl;
+                std::cout << "reached the end of the training data" << std::endl;
             break;
         }
 
-        res +=  " "; // added after the if statement to remove trailing spaces
-
-        nxt = word->word;
+        input +=  " "; // added after the if statement to remove trailing spaces
 
         if(word_buffer.size() >= length)
             word_buffer.erase(word_buffer.begin()); // also shifts the array
-        word_buffer.push_back(nxt);
+        word_buffer.push_back(word);
 
-        res += nxt;
-        if(i >= soft_limit && isTerminator(nxt[nxt.size()-1])) {
+        input += word;
+        if(i >= soft_limit && isTerminator(word.at(word.size()-1))) {
             if(debug)
-                cout << "quitting regurgitation early after full stop was found after soft limit of " << soft_limit << endl;
+                std::cout << "quitting regurgitation early after full stop was found after soft limit of " << soft_limit << std::endl;
             break;
         }
     }
     // check for hard limit / change the ending depending on whether it was reached
-    if(i >= hard_limit && !isTerminator(res[res.size()-1])) {
+    if(i >= hard_limit && !isTerminator(input[input.size()-1])) {
         if(debug)
-            cout << "hard limit reached: " << hard_limit << endl;
-        res += "...";
+            std::cout << "hard limit reached: " << hard_limit << std::endl;
+        input += "...";
     }
     if(debug)
-        cout << "chain of length " << i << " extra words generated" << endl;
+        std::cout << "chain of length " << i << " extra words generated" << std::endl;
     if(words_used != nullptr)
         *words_used = i;
-    return res;
+    return input;
 }
 
 /// @brief Changes an option in the chain. Intended for use in the terminal
-/// @param input The string containing the details about what to change/how
+/// @param input The std::string containing the details about what to change/how
 /// @return True if the change was a success, false otherwise
-bool NChain::ChangeOption(const string input) {
+bool NChain::ChangeOption(std::string input) {
     try {
         switch(input[2]){ // expect 'c '... so skip first 2 characters
             case 's': // soft limit
                 default_soft_limit = std::stoi(input.substr(4, input.length() - 4));
-                cout << "soft limit changed" << endl;
+                std::cout << "soft limit changed" << std::endl;
                 return true;
             case 'h':
                 default_hard_limit = std::stoi(input.substr(4, input.length() - 4));
-                cout << "hard limit changed" << endl;
+                std::cout << "hard limit changed" << std::endl;
+                return true;
+            case 'd':
+                debug = std::stoi(input.substr(4, input.length() - 4)) != 0;
+                std::cout << "debug mode changed to " << std::to_string(debug) << std::endl;
                 return true;
             default:
                 return false;
 
         }
-    } catch(exception ex) {
-        cout << "could not make change; an error occured." << endl;
+    } catch(std::exception ex) {
+        std::cout << "could not make change; an error occured." << std::endl;
         return false;
     }
 }
@@ -335,7 +337,7 @@ bool NChain::ChangeOption(const string input) {
 /// @param filepath The name of the filepath to check against
 /// @param extension The extension to check against (does not include a .)
 /// @return True if they match, false otherwise
-bool is_valid_extension(const string filepath, const string extension) {
+bool is_valid_extension(std::string filepath, std::string extension) {
     if(filepath.size() <= extension.size())
         return false;
 
@@ -350,29 +352,29 @@ bool is_valid_extension(const string filepath, const string extension) {
 /// @brief Shorthand to write to an int file
 /// @param file The file to write to
 /// @param i The int to write
-void write(ofstream* file, int i) {
+void write(std::ofstream* file, int i) {
     file->write(reinterpret_cast<char*>(&i), sizeof(int));
 }
 
 /// @brief Saves the details of a chain to a given file. If the given filepath doesnt match, it will try and use the saved filepath, if it exists
 /// @param filepath The filepath to save to. Must end in '.jkc'
 /// @return True if the saving was a success, false otherwise
-bool NChain::SaveChain(string filepath) {
+bool NChain::SaveChain(std::string filepath) {
     if(filepath == "" && path != "") {
         filepath = path;
-        cout << "file path defaulted to: " << path << endl;
+        std::cout << "file path defaulted to: " << path << std::endl;
     }
 
     if(!is_valid_extension(filepath, ".jkc")) {
-        cout << "invalid file extension, should be '.jkc'" << endl;
+        std::cout << "invalid file extension, should be '.jkc'" << std::endl;
         return false;
     }
 
-    if(!filesystem::exists(filepath)) {
-        cout << "file: '" << filepath << "' does not exist, so creating it first" << endl;
+    if(!std::filesystem::exists(filepath)) {
+        std::cout << "file: '" << filepath << "' does not exist, so creating it first" << std::endl;
     } else 
-        cout << filepath << " exists, about to save to it." << endl;
-    ofstream file(filepath, ios::out | ios::binary);
+        std::cout << filepath << " exists, about to save to it." << std::endl;
+    std::ofstream file(filepath, std::ios::out | std::ios::binary);
     path = filepath;
 
     write(&file, save_format_version);
@@ -387,24 +389,24 @@ bool NChain::SaveChain(string filepath) {
 
         write(&file,p.second.size());
         for(auto const& s : p.second) {
-            write(&file, s->word.length());
-            file << s->word.c_str();
+            write(&file, s.length());
+            file << s.c_str();
         }
     }
-    cout << "closing file" << endl;
+    std::cout << "closing file" << std::endl;
     file.close();
 
     return true;
 }
 
-/// @brief Shorthand to read a string of a given size from a file
+/// @brief Shorthand to read a std::string of a given size from a file
 /// @param file The file to read from
-/// @param size The size of the string (number of bytes to read)
-/// @return The string, read from the file
-string read_string(ifstream* file, const int size) {
+/// @param size The size of the std::string (number of bytes to read)
+/// @return The std::string, read from the file
+std::string read_string(std::ifstream* file, int size) {
     char* buffer = new char[size+1];
     file->read(buffer, size * sizeof(char));
-    buffer[size] = '\0'; // Cpp strings end with this, so otherwise the string is kindof fucked
+    buffer[size] = '\0'; // Cpp std::strings end with this, so otherwise the std::string is kindof fucked
     // post recommended deleting the buffer before doing more with the code, but since this is a stand-alone function, not sure what to do?
     return buffer;
 
@@ -413,7 +415,7 @@ string read_string(ifstream* file, const int size) {
 /// @brief Shorthand to read an int from a file
 /// @param file The file to read from
 /// @return The int that just got read
-int read_int(ifstream* file) {
+int read_int(std::ifstream* file) {
     int tmp = 0;
     file->read(reinterpret_cast<char*>(&tmp), sizeof(int));
     return tmp;
@@ -422,27 +424,27 @@ int read_int(ifstream* file) {
 /// @brief Loads the contents of a file into a chain, setting this chain's default filepath in the process
 /// @param filepath The filepath to load from
 /// @return True if loading was successful, false otherwise
-bool NChain::LoadChain(const string filepath) {
-    if(!filesystem::exists(filepath)) {
-        cout << "file: '" << filepath << "' does not exist, couldnt load to it" << endl;
+bool NChain::LoadChain(std::string filepath) {
+    if(!std::filesystem::exists(filepath)) {
+        std::cout << "file: '" << filepath << "' does not exist, couldnt load to it" << std::endl;
         return false;
     } else if(!is_valid_extension(filepath, ".jkc")) {
-        cout << "invalid file extension, should be '.jkc'" << endl;
+        std::cout << "invalid file extension, should be '.jkc'" << std::endl;
         return false;
     }
 
     debug = false;
 
-    ifstream file(filepath, ios::binary);
+    std::ifstream file(filepath, std::ios::binary);
     if(!file.is_open()) {
-        cout << "couldnt open file :(" << endl;
+        std::cout << "couldnt open file :(" << std::endl;
         return false;
     }
     path = filepath;
 
     // check save version
     if(read_int(&file) != save_format_version) {
-        cout << "this model is outdated, aborting" << endl;
+        std::cout << "this model is outdated, aborting" << std::endl;
         return false;
     }
 
@@ -452,21 +454,21 @@ bool NChain::LoadChain(const string filepath) {
     default_soft_limit = read_int(&file);
     default_hard_limit = read_int(&file);
     
-    usedWords_ = map<string, vector<Word*>>();
+    usedWords_ = std::map<std::string, std::vector<std::string>>();
     for(int i = 0; i < size; i++) {
-        string str = read_string(&file, read_int(&file));
+        std::string str = read_string(&file, read_int(&file));
 
-        vector<Word*> words;
+        std::vector<std::string> words;
         int mapping_count = read_int(&file);
         for(int x = 0; x < mapping_count; x++) {
-            string mapping = read_string(&file, read_int(&file));
-            words.push_back(new Word(mapping));
+            std::string mapping = read_string(&file, read_int(&file));
+            words.push_back(mapping);
         }
         usedWords_[str] = words;
     }
 
     file.close();
-    cout << "model loaded from " << filepath << endl;
+    std::cout << "model loaded from " << filepath << std::endl;
     DisplayDetails();
 
     return true;
@@ -475,7 +477,7 @@ bool NChain::LoadChain(const string filepath) {
 /// @brief Wrapper to load a chain from nothing
 /// @param filepath The filepath to load from
 /// @return A pointer to the chain
-NChain* LoadChain(const string filepath) {
+NChain* LoadChain(std::string filepath) {
     NChain* chain = new NChain(-1);
     if(chain->LoadChain(filepath)) {
         return chain;
@@ -486,20 +488,20 @@ NChain* LoadChain(const string filepath) {
 /// @brief Creates a chain based on terminal inputs (only takes chain length)
 /// @return A pointer to the new chain created
 NChain* ParseChain() {
-    string inp;
+    std::string inp;
     int length;
     while(inp != "q") {
-        cout << "parsing chain" << endl;
-        cout << "enter context size: " << endl;
+        std::cout << "parsing chain" << std::endl;
+        std::cout << "enter context size: " << std::endl;
         try {
-            getline(cin, inp);
+            std::getline(std::cin, inp);
             length = stoi(inp);
             if(length <= 0)
-                cout << "chain lengths must be greater than 0" << endl;
+                std::cout << "chain lengths must be greater than 0" << std::endl;
             else
                 inp = "q";
-        } catch (exception e) {
-            cout << "sorry, thats not a valid length. Enter 'q' to quit" << endl;
+        } catch (std::exception e) {
+            std::cout << "sorry, thats not a valid length. Enter 'q' to quit" << std::endl;
         }
     }
 

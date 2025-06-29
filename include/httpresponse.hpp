@@ -3,6 +3,7 @@
 
 #include<string>
 #include<map>
+#include<httprequest.hpp>
 
 class HTTPResponse {
     public:

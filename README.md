@@ -9,16 +9,17 @@ Similarly, the hard limit is an absolute cut-off point - once the hard limit is 
 
 The number of words a chain has in its context is referred to as its 'length'. A chain with a length of 1 just knows what word follows another, a chain with a length of 2 knows that 'I am' follows 'a' and 'am a' follows 'fish', in the sentence 'I am a fish'.
 ### key Characters
+Directories are separated from the command character by a single space.
+
 - 'n' create a new chain
-
-Directories are separated from the command character by a single space
-
 - 'l' loads a chain from a given directory*
 - 't' trains a chain on a given directory
 - 's' saves a chain to a given directory*
 - 'c' changes a chain option (e.g. default soft/hard limit)
 - - 's' for soft limit
 - - 'h' for hard limit
+- - 'd' sets the debug mode. Enter a 1 to enable it, or 0 to disable it
+- 'd' displays information about the chain
 - '>' regurgitates the rest of the input
 
 - 'q' quits the program
@@ -27,17 +28,17 @@ Otherwise, it is assumed that the text was meant to be as input to the chain for
 
 \* chains should be saved with an .jkc extension. If the chain has already been saved/loaded, it will remember this location, so you won't need to specify the location later
 ## Running The Server
-When initialising the server, do ./run-server (-c [server config path]) (q).
+When initialising the server, do ./run-server (-c [server config path]) (d).
 The server config is optional and stores settings about the server. If a config cannot be found, values will default to:
 > port = 6678
 > model-directory = ../models/
 
-'q' will run the server in quiet mode, with less info being printed to the terminal
+'d' will run the server in debug mode, with a lot of info being printed to the terminal.
 ### Running The Server as a Container
 The container uses a two-stage build process (hence why .dockerignore is a bit bland) to create only the necessary files in the image (the server executable, config file (TODO), and models directory).
 ## Querying The Server
 The http request contains up to 4 parameters - the model, the prompt, the hard limit, and the soft-limit.
-An example request would be 'http://localhost:6678/model=mdl1.jkc&prompt=My name is&soft_limit=3'. Note that 'hard_limit' is not included, so will default to whatever value is inside the server's config file.
+An example request would be 'http://localhost:6678/model=mdl1.jkc&prompt=My%20name520is&soft_limit=3'. Note that 'hard_limit' is not included, so will default to whatever value is inside the server's config file.
 In this prompt, the model queried would be (server.model-directory + '/mdl1.jkc').
 ## Testing The Chain
 The chain test suite first trains a model on a very small input, and tests it locally, including checking for random chance (one input phrase having multiple output words).

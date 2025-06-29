@@ -3,8 +3,8 @@
 /// @brief Creates a new HTTPServer
 /// @param port The port to open the server on later
 /// @param consumer A function that takes in a HTTRequest and returns a HTTPResponse
-/// @param quiet Whether or not the display information to the terminal
-HTTPServer::HTTPServer(int port, HTTPResponse (*consumer)(HTTPRequest, bool), bool quiet) : Server(port, quiet), consumer(consumer) {
+/// @param debug Whether or not the display information to the terminal
+HTTPServer::HTTPServer(int port, HTTPResponse (*consumer)(HTTPRequest, bool), bool debug) : Server(port, debug), consumer(consumer) {
     std::cout << "initialising http server with port" << port << std::endl;
 }
 
@@ -27,11 +27,11 @@ int HTTPServer::StartServer() {
     server_address.sin_port = htons(port);
     server_address.sin_addr.s_addr = INADDR_ANY;
     
-    if(!quiet)
+    if(debug)
         std::cout << "bound" << std::endl;
     bind(serverSocket, (sockaddr*)&server_address, sizeof(server_address));
 
-    if(!quiet)
+    if(debug)
         std::cout << "listening" << std::endl;
     listen(serverSocket, 256); // make space for 256 requestss
 
@@ -39,7 +39,7 @@ int HTTPServer::StartServer() {
     try {
         while(true) {
             char buffer[4096] = {0};
-            if(!quiet)
+            if(debug)
                 std::cout << "waiting for connections" << std::endl;
             int client_socket = accept(serverSocket, nullptr, nullptr);
 
@@ -56,19 +56,19 @@ int HTTPServer::StartServer() {
                 continue;
             }
             
-            if(!quiet)
+            if(debug)
                 std::cout << buffer << std::endl;
 
             HTTPRequest req(buffer);
-            if(!quiet)
+            if(debug)
                 std::cout << "request constructed" << std::endl;
-            HTTPResponse response = consumer(req, quiet);
-            if(!quiet)
+            HTTPResponse response = consumer(req, debug);
+            if(debug)
                 std::cout << "response constructed" << std::endl; 
             
             res = send(client_socket, response.contents.c_str(), response.contents.size(), 0);
 
-            if(!quiet)
+            if(debug)
                 std::cout << "result of sending: " << res << std::endl;
             if(res < 0) {
                 std::cout << "sent bad message: " << res << ":" << buffer << std::endl;
@@ -77,7 +77,7 @@ int HTTPServer::StartServer() {
             }
 
             close(client_socket);
-            if(!quiet)
+            if(debug)
                 std::cout << "client closed" << std::endl;
 
         }

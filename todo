@@ -1,25 +1,18 @@
 commits
+    Example model added/many minor refactors/name changes made
     Everything else (general cleanup)
-    fix CI file (?)
 
-revert passing quiet into the consumer if it wasnt the issue?
+    test with random punctuation (& and = inside prompts)
+
+            segfault on server request (normal logic is fine)
+
+            give everything have stds
+
+    talk about testing in README
+
+            free old chains
 
 handle_sigterm and replace SIGKILL with SIGTERM for run-server?
 might be able to actually just kill pid and check the sigterm
 
 close file descriptors
-
-make sure everything uses the same naming convention/make a style guide?
-
-give everything have stds
-
-remove Word class stuff
-
-
-change 'quiet' to 'debug' for continuity
-
-HTTPRequest->ParseReqyestType, make it support all request types -- enum?
-
-test with random punctuation (& and = inside prompts)
-
-use partial functions for testing

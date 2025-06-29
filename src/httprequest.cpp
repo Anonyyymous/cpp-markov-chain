@@ -5,7 +5,7 @@
 /// More useful for formatting a request to send, where the body/headers can be added later
 /// @param request_type 
 /// @param request_line 
-HTTPRequest::HTTPRequest(int request_type, const char* request_line) : requestLine(request_line), requestType(request_type) {
+HTTPRequest::HTTPRequest(RequestType request_type, const char* request_line) : requestLine(request_line), requestType(request_type) {
     std::cout << "creating http request" << std::endl << std::endl << std::endl;
 }
 
@@ -13,9 +13,10 @@ HTTPRequest::HTTPRequest(int request_type, const char* request_line) : requestLi
 /// @param contents_ The string to parse
 HTTPRequest::HTTPRequest(const char* contents_) {
     std::string contents(contents_);
-    size = contents.size();
 
-    int i = ParseRequestType(contents[0]);
+    int i = 0;// = ParseRequestType(contents[0]);
+    while(contents[i++] != ' ');
+    requestType = string_to_request_type(contents[0], contents[1]);
     int length = 0;
     while(contents[i + length++] != '\n');
 
@@ -30,8 +31,6 @@ HTTPRequest::HTTPRequest(const char* contents_) {
     ParseParams(param_start);
     std::cout << std::endl;
 }
-
-// returns the index at which to start analysing the request from, including a space
 
 /// @brief Returns the index at which to start analysing the request from, and parses the requestType of this request, based on the first character
 /// @param first_char 
@@ -57,7 +56,7 @@ void HTTPRequest::ParseParams(int i) {
     int j = i, e = i;
     bool parsing_name = true; // allows us to use '=' inside a parameter (e.g. var='i=j')
     // TODO forloop?
-    while(i <= requestLine.size()) {
+    for(i = i; i <= requestLine.size(); i++) {
         if(!parsing_name && (i == requestLine.size() || requestLine[i] == '&')) {
             std::string param_name = requestLine.substr(j+1, e-j-1);
             if(i == requestLine.size())
@@ -71,7 +70,6 @@ void HTTPRequest::ParseParams(int i) {
             e = i;
             parsing_name = false;
         }
-        i++;
     }
 }
 
@@ -109,8 +107,9 @@ std::string HTTPRequest::FormatToSend() {
 /// @param destination The destination address
 /// @param resource The resource to query/access
 /// @return A pointer to a new HTTPRequest containing this information
-HTTPRequest* format_request_for(std::string destination, std::string resource) {
-    HTTPRequest* req = new HTTPRequest(1, ("GET " + resource + " HTTP/1.1").c_str());
+HTTPRequest* format_get_for(std::string destination, std::string resource) {
+    HTTPRequest* req = new HTTPRequest(GET, ("GET " + resource + " HTTP/1.1").c_str());
+    req->resource = resource;
 
     // add headers
     req->headers["Host"] = destination;
@@ -120,4 +119,30 @@ HTTPRequest* format_request_for(std::string destination, std::string resource) {
     req->headers["Connection"] = "keep-alive";
     
     return req;
+}
+
+/// @brief Converts a request type enum to a string corresponding to that type
+/// @param type The type to convert
+/// @return A string containing the english name of the request type
+std::string request_type_to_string(RequestType type) {
+    switch(static_cast<int>(type)) {
+        case GET: return "GET";
+        case POST: return "POST";
+        case PUT: return "PUT";
+        case DELETE: return "DELETE";
+
+        default: return "GET";
+    }
+}
+
+/// @brief Uses the first two characters of a request type name to determine which request type it is
+/// @param fst The first character to consider
+/// @param snd The second character to consider (PUT and POST both start with P, so a 2nd character is required)
+/// @return The RequestType
+RequestType string_to_request_type(char fst, char snd) {
+    switch (fst) {
+        case 'G': return GET;
+        case 'P': return (snd == 'U') ? PUT : POST;
+        default: return DELETE;
+    }
 }

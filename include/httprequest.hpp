@@ -5,18 +5,22 @@
 #include<map>
 
 // TODO replace with enum
-const int POST = 0;
-const int GET = 1;
+enum RequestType {
+    GET,
+    POST,
+    PUT,
+    DELETE
+};
 
 class HTTPRequest {
     public:
         // lot of this is for metadata, if needed
         std::string requestLine, resource, body;
-        int requestType, size;
+        RequestType requestType;
         std::map<std::string, std::string> headers;
         std::map<std::string, std::string> params;
 
-        HTTPRequest(int type, const char* resource);
+        HTTPRequest(RequestType request_type, const char* request_line);
         HTTPRequest(const char* contents);
 
         std::string FormatToSend();
@@ -27,6 +31,10 @@ class HTTPRequest {
         void ParseParams(int param_start);
 };
 
-HTTPRequest* format_request_for(std::string destination, std::string resource);
+HTTPRequest* format_get_for(std::string destination, std::string resource);
+
+std::string request_type_to_string(RequestType type);
+
+RequestType string_to_request_type(char fst, char snd);
 
 #endif
