@@ -45,6 +45,15 @@ std::string convert_to_json(std::string result, int status_code) {
     return "{\"status\":" + std::to_string(status_code) + ",\"response\":\"" + result + "\"}";
 }
 
+/// @brief Converts the given result and status code to a string formatted in JSON
+/// @param result The result of chain regurgitation, or an error message
+/// @param status_code The HTTP status code
+/// @param is_valid True if any regurtitation was performed, false otherwise
+/// @return A string formatted in JSON
+std::string convert_regurgitation_to_json(std::string result, int status_code, bool is_valid) {
+    return "{\"status\":" + std::to_string(status_code) + ",\"response\":\"" + result + "\",\"valid\":" + std::to_string(is_valid) + "}";
+}
+
 /// @brief Tries to parse the given parameter of a HTTPRequest to an int
 /// @param request 
 /// @param param_name The name of the parameter to parse
@@ -133,7 +142,10 @@ HTTPResponse process_request(HTTPRequest request, bool debug) {
                 if(debug)
                     std::cout << "requesting: '" << prompt << "' from: '" << target_model << "'" << std::endl;
 
-                result = model->Regurgitate(prompt, soft_limit, hard_limit);
+                result = prompt;
+
+                bool res = model->Regurgitate(&prompt, soft_limit, hard_limit);
+                return HTTPResponse(status_code, headers, convert_regurgitation_to_json(result, status_code, res));
             } else {
                 status_code = 400;
                 result = "couldnt parse prompt (" + prompt + "), it should be wrapped in 's";
@@ -156,7 +168,7 @@ void make_config(std::string config_path) {
     */
     std::ofstream file(config_path);
 
-    file << std::to_string(port) << "\n" << model_path;
+    file << port << "\n" << model_path;
 
     file.close();
     std::cout << "config file created" << std::endl;

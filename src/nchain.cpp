@@ -51,6 +51,7 @@ std::string concat_vector(std::vector<std::string>* vec, int max_index) {
 /// @return The result of the addition
 bool NChain::AddWord(std::string context, std::string new_word) {
     usedWords_[context].push_back(new_word);
+    return true;
 }
 
 /// @brief Executes the Train function on the entire directory
@@ -93,8 +94,6 @@ bool NChain::Train(const std::string filepath) {
 
     std::string line;
     while(std::getline(file, line)) {
-        if(line == "\n")
-            continue;
         int j = 0;
         word_buffer.clear();
 
@@ -154,31 +153,36 @@ bool NChain::HasContext(const std::string context) {
 /// @param input The input to process
 /// @param word_buffer The buffer to fill
 /// @return The number of words in the input
-int NChain::InitialiseWordBuffer(std::string input, std::vector<std::string>* word_buffer) {
-    if(input.length() == 0)
+int NChain::InitialiseWordBuffer(std::string* input, std::vector<std::string>* word_buffer) {
+    if(input->length() == 0)
         return 0;
-    int j = input.length();
+    int j = input->length();
 
-    std::string start;
+    std::string start, context;
     int word_count = 0;
     bool buffer_filled = false;
 
     // works from the end, which means we can quit early once we reach bad words, or a sufficient amount of good ones
-    for(int i = input.length() - 1; i >= -1; i--) {
-        if(i == -1 || input[i] == ' ') {
+    for(int i = input->length() - 1; i >= -1; i--) {
+        if(i == -1 || input->at(i) == ' ') {
             word_count++;
             if(buffer_filled)
                 continue;
 
-            start = input.substr(i+1, j-i-1);
+            
+            start = input->substr(i+1, j-i-1);
+            if(word_count < 2)
+                context = start;
+            else 
+                context = start + " " +  context;
             
             j = i;
             if(debug)
-                std::cout << "processing word: '" << start << "' - " << word_buffer->size() << "/" << length << std::endl;
+                std::cout << "processing word: '" << start << "' - " << word_buffer->size() << "/" << length << "/ context: '" << context << "'" <<  std::endl;
             
-            if(!HasContext(start)) {
+            if(!HasContext(context)) {
                 if(debug)
-                    std::cout << "dont have word: '" << start << "'" <<  std::endl;
+                    std::cout << "dont have word: '" << context << "'" <<  std::endl;
                 buffer_filled = true; // if we don't have a word, use the buffer as it is, for some continuity rather than none
                 continue;
             }
@@ -197,8 +201,7 @@ int NChain::InitialiseWordBuffer(std::string input, std::vector<std::string>* wo
 /// @param context The context to pick based on
 /// @return A pointer to the word selected, or nullptr if no such mapping exists
 std::string NChain::PickWord(std::string context) {
-    if(!HasContext(context)) // if its not in the map
-    {
+    if(!HasContext(context)) { // if its not in the map
         return "";
     }
     std::vector<std::string> words = usedWords_.at(context);
@@ -208,7 +211,7 @@ std::string NChain::PickWord(std::string context) {
 /// @brief Regurgitates based on some input, using the chain's default soft/hard limits
 /// @param input The input to regurgitate from
 /// @return The resultant string (includes the input)
-std::string NChain::Regurgitate(std::string input) {
+bool NChain::Regurgitate(std::string* input) {
     return Regurgitate(input, default_soft_limit, default_hard_limit, nullptr);
 }
 
@@ -217,7 +220,7 @@ std::string NChain::Regurgitate(std::string input) {
 /// @param soft_limit The soft limit of this output - once the soft limit is reached, if a word ends in a full stop, the chain will end
 /// @param hard_limit The hard limit of this output - once the hard limit is reached, the chain stops
 /// @return The resultant string (includes the input)
-std::string NChain::Regurgitate(std::string input, int soft_limit, int hard_limit) {
+bool NChain::Regurgitate(std::string* input, int soft_limit, int hard_limit) {
     return Regurgitate(input, soft_limit, hard_limit, nullptr);
 }
 
@@ -235,12 +238,12 @@ bool is_terminator(char inp) {
 }
 
 /// @brief Regurgitates based on some input, using the given default soft/hard limits
-/// @param input The input to regurgitate from
+/// @param input The input to regurgitate from, and to copy to
 /// @param soft_limit The soft limit of this output - once the soft limit is reached, if a word ends in a full stop, the chain will end
 /// @param hard_limit The hard limit of this output - once the hard limit is reached, the chain stops
 /// @param words_used The words contained in the total output, in case this can be used for downstream tasks, such as for a http request
-/// @return The resultant string (includes the input)
-std::string NChain::Regurgitate(std::string input, int soft_limit, int hard_limit, int* words_used) {
+/// @return Whether any information was added, so false if no words were in our vocabulary
+bool NChain::Regurgitate(std::string* input, int soft_limit, int hard_limit, int* words_used) {
     std::vector<std::string> word_buffer;
     word_buffer.reserve(length); // avoids resizing later
 
@@ -250,6 +253,9 @@ std::string NChain::Regurgitate(std::string input, int soft_limit, int hard_limi
         hard_limit = default_hard_limit;
 
     int i = InitialiseWordBuffer(input, &word_buffer);
+
+    if(word_buffer.size() == 0 && *input != "")
+        return false;
 
     if(debug) {
         std::string initial_context = concat_vector(&word_buffer, word_buffer.size());
@@ -274,30 +280,30 @@ std::string NChain::Regurgitate(std::string input, int soft_limit, int hard_limi
         }
 
         if(i > 0)
-            input +=  " "; // added after the if statement to remove trailing spaces
+            input->push_back(' '); // added after the if statement to remove trailing spaces
 
         if(word_buffer.size() >= length)
             word_buffer.erase(word_buffer.begin()); // also shifts the array
         word_buffer.push_back(word);
 
-        input += word;
+        input->append(word);
         if(i >= soft_limit && is_terminator(word.at(word.size()-1))) {
             if(debug)
-                std::cout << "quitting regurgitation early after full stop was found after soft limit of " << soft_limit << std::endl;
+                std::cout << "quitting regurgitation early after sentence terminator was found after soft limit of " << soft_limit << std::endl;
             break;
         }
     }
     // check for hard limit / change the ending depending on whether it was reached
-    if(i >= hard_limit && !is_terminator(input[input.size()-1])) {
+    if(i >= hard_limit && !is_terminator(input->at(input->size()-1))) {
         if(debug)
             std::cout << "hard limit reached: " << hard_limit << std::endl;
-        input += "...";
+        input->append("...");
     }
     if(debug)
         std::cout << "chain of length " << i << " extra words generated" << std::endl;
     if(words_used != nullptr)
         *words_used = i;
-    return input;
+    return true;
 }
 
 /// @brief Changes an option in the chain. Intended for use in the terminal
@@ -316,7 +322,7 @@ bool NChain::ChangeOption(std::string input) {
                 return true;
             case 'd':
                 debug = std::stoi(input.substr(4, input.length() - 4)) != 0;
-                std::cout << "debug mode changed to " << std::to_string(debug) << std::endl;
+                std::cout << "debug mode changed to " << debug << std::endl;
                 return true;
             default:
                 return false;

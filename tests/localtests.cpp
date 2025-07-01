@@ -22,12 +22,12 @@ int main() {
         return -1;
     }
     std::cout << "Chain saved..." << std::endl;
-
-    std::string regurgitation = chain->Regurgitate("Tell him");
-    if(regurgitation == "Tell him to go eat shit, Johnny." || regurgitation == "Tell him yourself.")  
+    std::string prompt = "Tell him";
+    bool res = chain->Regurgitate(&prompt);
+    if(res && (prompt == "Tell him to go eat shit, Johnny." || prompt == "Tell him yourself."))  
         std::cout << "Initial test complete" << std::endl;
     else {
-        std::cout << "'" << regurgitation << "' - test failed" << std::endl;
+        std::cout << "'" << prompt << "' - test failed" << std::endl;
         return -1;
     }
 
@@ -44,7 +44,7 @@ int main() {
     std::cout << "server running on pid: " << pid << std::endl;
     const int python_result = std::system("python3.10 ../tests/testapi.py") >> 8;
 
-    std::cout << "python test status code: " << std::to_string(python_result) << std::endl;
+    std::cout << "python test status code: " << python_result << std::endl;
 
     if(python_result == success) {
         std::cout << "--tests successful--" << std::endl;

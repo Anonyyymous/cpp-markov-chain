@@ -70,16 +70,22 @@ int main(int argc, char** argv) {
                 chain->DisplayDetails();
 
             // force regurgitate (ignores special characters)
-            else if(inp.length() >= 1 && inp[0] == '>')
-                std::cout << std::endl << chain->Regurgitate(inp.substr(1, inp.length()-1)) << std::endl;
+            else if(inp.length() >= 1 && inp[0] == '>') {
+                std::string prompt = inp.substr(1, inp.length()-1);
+                chain->Regurgitate(&prompt);
+                std::cout << std::endl << prompt << std::endl;
+            }
             
             // change option
             else if (inp.length() >= 3 && inp[0] == 'c' && inp[1] == ' ')
                 chain->ChangeOption(inp);
             
             // assume they wanted to regurgitate anyway
-            else
-                std::cout << std::endl << chain->Regurgitate(inp) << std::endl;
+            else {
+                std::string prompt = inp;
+                chain->Regurgitate(&prompt);
+                std::cout << std::endl << prompt << std::endl;
+            }
 
         } else {
             std::cout << "cannot perform command; chain is null" << std::endl;

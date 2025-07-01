@@ -14,9 +14,9 @@ class NChain {
         bool Train(std::string filepath);
         bool TrainDirectory(std::string path);
         bool HasContext(std::string context);
-        std::string Regurgitate(std::string input);
-        std::string Regurgitate(std::string input, int soft_limit, int hard_limit);
-        std::string Regurgitate(std::string input, int soft_limit, int hard_limit, int* words_used);
+        bool Regurgitate(std::string* input);
+        bool Regurgitate(std::string* input, int soft_limit, int hard_limit);
+        bool Regurgitate(std::string* input, int soft_limit, int hard_limit, int* words_used);
         void DisplayDetails();
         bool ChangeOption(std::string input);
 
@@ -28,7 +28,7 @@ class NChain {
         // negative, since previous versions saved the length first, and this cannot be negative, so older models cannot be misinterpreted as newer
         int save_format_version = -1;
         std::string path = "";
-        int InitialiseWordBuffer(std::string input, std::vector<std::string>* word_buffer);
+        int InitialiseWordBuffer(std::string* input, std::vector<std::string>* word_buffer);
         std::string PickWord(std::string context);
         bool AddWord(std::string context, std::string newWord);
         std::map<std::string, std::vector<std::string>> usedWords_;
