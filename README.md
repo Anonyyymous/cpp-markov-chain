@@ -46,3 +46,11 @@ Next, similar tests are done via the API through python and the requests package
 
 Sometimes the code will throw errorno 111, meaning the server didnt get the socket it was supposed to, so when the tests try to access the socket, they can't. Just give it a bit and try again later.
 This can also happen while doing ./run-server, though no error message will appear, so just stop the process, wait a bit, and try again.
+## Personal Reflection on the Project
+I was originally inspired to make something like this after reading about Nepenthes, an anti-web-scraper tar pit, designed to trap (particularly gen-ai) crawlers that violated a website's robots.txt, and uses markov babble to poison/entertain them while doing this.
+
+This was also a project I aimed to do with minimal ai assistance (the occasional pointer towards c++ syntax), and while using git in the CLI. This is why an embarassing number of the commits are along the lines of 'forgot x'. Setting up github actions also took some time, with the reason for most of the errors simply being that some of the files it was trying to transfer had been .gitignore'd, so weren't there. Hopefully, lesson learned.
+
+The github actions file is originally courtesy of the University of Warwick Computing Society, and I am also using their services to host an example container - examplejarkov.containers.uwcs.co.uk/?model=example.jkc, trained on this file (except this last bit, unless I decide to retrain it (unlikely)).
+
+Theres a few more features I _could_ add, but I am happy with it's current state, being actually somewhat usable. One example would be finding an Accept header value that actually displays the result as json to my browser, though it's in the right format to be parsed.

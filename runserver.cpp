@@ -70,14 +70,11 @@ bool can_parse_request_param(HTTPRequest request, std::string param_name, int* v
 HTTPResponse process_request(HTTPRequest request, bool debug) {
     std::map<std::string, std::string> headers;
     headers["Accept-Ranges"] = "bytes";
-    headers["Accept"] = "application/vnd.api+json";
 
     // parse headers/query parameters -----------------------------------------------
     std::string result;
     int status_code = 200;
 
-    //TODO
-    //int i = request.requestLine.find("/?")+1;
 
     int soft_limit = -1, hard_limit = -1;
 
