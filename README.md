@@ -4,8 +4,8 @@ A simple C++ markov chain and HTTP server, designed to be used in tandem.
 This is the main method of interacting with chains locally, and can be used to load, create and run chains.
 ## About Chains
 Chains are implemented via C++ maps, and when one is queried, the query includes a hard/soft limit.
-Chains work on spaces - they include punctuation in words (e.g. 'complete.'). The soft limit determines the minimum word count the chain can run for before a full stop ends the output (this does not include instances where the chain runs out of data to spit out), such as 'My name is Yoshikage Kira.', where a soft limit of 2 would lead to the output ending here.
-Similarly, the hard limit is an absolute cut-off point - once the hard limit is reach the ouput immediately ends (e.g. 'My name is' with a hard limit of 3).
+Chains work on spaces - they include punctuation in words (e.g. 'complete.'). The soft limit determines the minimum word count the chain can run for before a full stop ends the output (this does not include instances where the chain runs out of data to spit out), such as 'I am a fish.', where a soft limit of 2 would lead to the output ending here.
+Similarly, the hard limit is an absolute cut-off point - once the hard limit is reach the ouput immediately ends (e.g. 'I am a...' with a hard limit of 3).
 
 The number of words a chain has in its context is referred to as its 'length'. A chain with a length of 1 just knows what word follows another, a chain with a length of 2 knows that 'I am' follows 'a' and 'am a' follows 'fish', in the sentence 'I am a fish'.
 ### key Characters
@@ -35,7 +35,7 @@ The server config is optional and stores settings about the server. If a config 
 
 'd' will run the server in debug mode, with a lot of info being printed to the terminal.
 ### Running The Server as a Container
-The container uses a two-stage build process (hence why .dockerignore is a bit bland) to create only the necessary files in the image (the server executable, config file (TODO), and models directory).
+The container uses a two-stage build process (hence why .dockerignore is a bit bland) to create only the necessary files in the image (the server executable, config file, and models directory).
 ## Querying The Server
 The http request contains up to 4 parameters - the model, the prompt, the hard limit, and the soft-limit.
 An example request would be 'http://localhost:6678/model=mdl1.jkc&prompt=My%20name520is&soft_limit=3'. Note that 'hard_limit' is not included, so will default to whatever value is inside the server's config file.

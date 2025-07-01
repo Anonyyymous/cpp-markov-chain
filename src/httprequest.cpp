@@ -55,7 +55,7 @@ void HTTPRequest::ParseParams(int i) {
     // j = start of a new parameter name, e = index of the equals
     int j = i, e = i;
     bool parsing_name = true; // allows us to use '=' inside a parameter (e.g. var='i=j')
-    // TODO forloop?
+
     for(i = i; i <= requestLine.size(); i++) {
         if(!parsing_name && (i == requestLine.size() || requestLine[i] == '&')) {
             std::string param_name = requestLine.substr(j+1, e-j-1);

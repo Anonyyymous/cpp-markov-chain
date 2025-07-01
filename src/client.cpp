@@ -24,7 +24,6 @@ int Client::Connect(std::string destination, std::string greeting, int port) {
 
     client_address.sin_family = AF_INET;
     client_address.sin_port = htons(port); // server port to connect to
-    //client_address.sin_addr.s_addr = INADDR_ANY;
     client_address.sin_addr.s_addr = inet_addr(destination.c_str());
 
     if(connect(client_socket, (sockaddr*) &client_address, sizeof(client_address)) < 0) {

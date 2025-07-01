@@ -8,18 +8,14 @@
 
 /// @brief Creates a new chain with the given length. Debug defaults to false
 /// @param length The length of the new chain
-NChain::NChain(int length) : length(length), default_soft_limit(50), default_hard_limit(100), debug(false) {
-    //
-}
+NChain::NChain(int length) : length(length), default_soft_limit(50), default_hard_limit(100), debug(false) {}
 
 /// @brief Creates a new chain with the given length, default soft limit, and default hard limit. Debug defaults to false
 /// @param length 
 /// @param default_soft_limit 
 /// @param default_hard_limit 
 NChain::NChain(int length, int default_soft_limit, int default_hard_limit) : length(length), 
-    default_soft_limit(default_soft_limit), default_hard_limit(default_hard_limit), debug(false) {
-    //
-}
+    default_soft_limit(default_soft_limit), default_hard_limit(default_hard_limit), debug(false) {}
 
 /// @brief Displays the details of the chain, including it's context length, soft/hard limits, and the saved path, if applicable
 void NChain::DisplayDetails() {
@@ -53,12 +49,8 @@ std::string concat_vector(std::vector<std::string>* vec, int max_index) {
 /// @param context The context of the word
 /// @param new_word The word to map to
 /// @return The result of the addition
-std::string NChain::AddWord(std::string context, std::string new_word) {
-    if(!HasContext(context)) {
-        usedWords_[context] = std::vector<std::string> {new_word};
-    } else
-        usedWords_[context].push_back(new_word);
-    return new_word;
+bool NChain::AddWord(std::string context, std::string new_word) {
+    usedWords_[context].push_back(new_word);
 }
 
 /// @brief Executes the Train function on the entire directory

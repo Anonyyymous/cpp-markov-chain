@@ -33,8 +33,6 @@ int main() {
 
     std::cout << std::endl << "--Base tests complete--" << std::endl << std::endl;
 
-    //int result = -1;
-
     pid_t pid = fork();
     if (pid == 0) {
         const int result = std::system("./run-server -c ../tests/server.conf");
@@ -49,20 +47,10 @@ int main() {
     std::cout << "python test status code: " << std::to_string(python_result) << std::endl;
 
     if(python_result == success) {
-        //result = 1;
         std::cout << "--tests successful--" << std::endl;
     } else 
         std::cout << "--tests unsuccessful--" << std::endl;
 
-
-    //kill(pid, SIGTERM);
-
-    /* std::cout << "gpid: " << to_string((int) getpgid(getpid())) << std::endl;
-    std::cout << "stuff killed: " << kill(pid, SIGKILL) << std::endl;
-    waitpid(pid, nullptr, 0); */
-
-    // using the pid of the server just didnt work for some reason
-    kill(0, SIGKILL); // will also quit program
-
-    return 0;
+    kill(pid, SIGTERM);
+    return python_result;
 }

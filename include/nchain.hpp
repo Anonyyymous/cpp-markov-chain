@@ -30,7 +30,7 @@ class NChain {
         std::string path = "";
         int InitialiseWordBuffer(std::string input, std::vector<std::string>* word_buffer);
         std::string PickWord(std::string context);
-        std::string AddWord(std::string context, std::string newWord);
+        bool AddWord(std::string context, std::string newWord);
         std::map<std::string, std::vector<std::string>> usedWords_;
 };
 
