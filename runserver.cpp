@@ -208,6 +208,14 @@ void process_config(std::string config_path) {
     }
 }
 
+/// @brief Deletes the memory associated with the models. If the server is terminated, this is not really necessary/wont be executed
+void free_models() {
+    for(auto it = models.begin(); it != models.end(); ++it) {
+        delete it->second;
+    }
+    std::cout << "models deleted from memory" << std::endl;
+}
+
 int main(int argc, char** argv) {
     bool config_loaded = false, debug = false;
 
@@ -226,5 +234,7 @@ int main(int argc, char** argv) {
         process_config("server.conf");
 
     HTTPServer server(port, process_request, debug);
-    return server.StartServer();
+    int res = server.StartServer();
+    free_models();
+    return res;
 }

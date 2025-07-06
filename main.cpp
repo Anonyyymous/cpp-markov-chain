@@ -10,13 +10,6 @@ std::string parse_arg(std::string* str) {
     return str->substr(2, str->length()-1);
 }
 
-/// @brief Frees a chain if possible. Intended to be used when loading/making a new chain
-/// @param chain A pointer to the chain to free
-void free_chain(NChain* chain) {
-    if(chain != nullptr) 
-        free(chain);
-}
-
 int main(int argc, char** argv) {
     std::srand(std::time(NULL));
     
@@ -34,13 +27,13 @@ int main(int argc, char** argv) {
 
         // load
         if(inp.length() >= 3 && inp[0] == 'l' && inp[1] == ' ') {
-            free_chain(chain);
+            delete chain;
             chain = LoadChain(parse_arg(&inp));
         }
 
         // make new chain
         else if(inp.length() >= 1 && inp[0] == 'n') {
-            free_chain(chain);
+            delete chain;
 
             chain = ParseChain();
 
@@ -92,7 +85,7 @@ int main(int argc, char** argv) {
         }
     } while(inp != "stop");
 
-    free_chain(chain);
+    delete chain;
 
     return 0;
 

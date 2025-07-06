@@ -6,8 +6,29 @@
 #include<signal.h>
 
 
+/// @brief Checks whether the given port is taken
+/// @param port The port to check for
+/// @return True if the port is free, false otherwise
+bool test_port(int port) {
+    int file = socket(AF_INET, SOCK_STREAM, 0);
+    struct sockaddr_in addr;
+
+    if(file < 0) {
+        std::cout << "error occured trying to create the test socket" << std::endl;
+        return false;
+    }
+
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+    addr.sin_addr.s_addr = INADDR_ANY;
+
+    int res = bind(file, (sockaddr*)&addr, sizeof(addr));
+    close(file);
+    return res >= 0;
+}
+
 int main() {
-    std::cout << "starting tests" << std::endl;
+    std::cout << "Starting tests - please make sure the server.conf in the tests directory uses port 6678 for testing" << std::endl;
 
     NChain* chain = new NChain(2, 4, 5);
     std::cout << "Chain created..." << std::endl;
@@ -33,7 +54,12 @@ int main() {
     }
 
     std::cout << std::endl << "--Base tests complete--" << std::endl << std::endl;
-    free(chain);
+    delete chain;
+
+    if(!test_port(6678)) {
+        std::cout << "Couldnt get port 6678, another program may be using it. If you used that port recently, give it some time and try again." << std::endl;
+        return -1;
+    }
 
     pid_t pid = fork();
     if (pid == 0) {

@@ -5,7 +5,7 @@
 /// @param consumer A function that takes in a HTTRequest and returns a HTTPResponse
 /// @param debug Whether or not the display information to the terminal
 HTTPServer::HTTPServer(int port, HTTPResponse (*consumer)(HTTPRequest, bool), bool debug) : Server(port, debug), consumer(consumer) {
-    std::cout << "initialising http server with port" << port << std::endl;
+    std::cout << "initialising http server with port " << port << std::endl;
 }
 
 /// @brief Starts the HTTPServer, and once it receives a request, passes it into 'consumer'
@@ -29,7 +29,12 @@ int HTTPServer::StartServer() {
     
     if(debug)
         std::cout << "bound" << std::endl;
-    bind(serverSocket, (sockaddr*)&server_address, sizeof(server_address));
+    int res = bind(serverSocket, (sockaddr*)&server_address, sizeof(server_address));
+    if(res < 0) {
+        std::cout << "couldnt connect httpserver to port " << port << std::endl;
+        close(serverSocket);
+        return -1;
+    }
 
     if(debug)
         std::cout << "listening" << std::endl;

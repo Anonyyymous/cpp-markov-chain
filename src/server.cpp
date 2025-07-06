@@ -39,7 +39,12 @@ int Server::StartServer() {
     server_address.sin_addr.s_addr = INADDR_ANY;
 
     // maps the value of serverSocket to the contents of server_address
-    bind(serverSocket, (sockaddr*)&server_address, sizeof(server_address));
+    int res = bind(serverSocket, (sockaddr*)&server_address, sizeof(server_address));
+    if(res < 0) {
+        std::cout << "couldnt connect server to port " << port << std::endl;
+        close(serverSocket);
+        return -1;
+    }
 
     // accepts 5 connections before terminating, connections will be queued
     listen(serverSocket, 5);

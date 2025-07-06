@@ -408,8 +408,9 @@ std::string read_string(std::ifstream* file, int size) {
     char* buffer = new char[size+1];
     file->read(buffer, size * sizeof(char));
     buffer[size] = '\0'; // Cpp std::strings end with this, so otherwise the std::string is kindof fucked
-    // post recommended deleting the buffer before doing more with the code, but since this is a stand-alone function, not sure what to do?
-    return buffer;
+    std::string str(buffer); // TODO maybe remove memory leak?
+    delete [] buffer;
+    return str;
 
 }
 
