@@ -91,6 +91,9 @@ int main(int argc, char** argv) {
             std::cout << "cannot perform command; chain is null" << std::endl;
         }
     } while(inp != "stop");
+
+    free_chain(chain);
+
     return 0;
 
 }

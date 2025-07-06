@@ -143,9 +143,9 @@ HTTPResponse process_request(HTTPRequest request, bool debug) {
                     std::cout << "requesting: '" << prompt << "' from: '" << target_model << "'" << std::endl;
 
                 result = prompt;
-
+                
                 bool res = model->Regurgitate(&prompt, soft_limit, hard_limit);
-                return HTTPResponse(status_code, headers, convert_regurgitation_to_json(result, status_code, res));
+                return HTTPResponse(status_code, headers, convert_regurgitation_to_json(prompt, status_code, res));
             } else {
                 status_code = 400;
                 result = "couldnt parse prompt (" + prompt + "), it should be wrapped in 's";

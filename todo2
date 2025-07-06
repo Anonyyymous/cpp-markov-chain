@@ -1,0 +1,3 @@
+test with valgrind
+
+check for port accessibility with sockets/try binding to the port, until the port is avaliable

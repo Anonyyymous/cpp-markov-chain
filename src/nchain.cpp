@@ -208,18 +208,18 @@ std::string NChain::PickWord(std::string context) {
     return words[rand() % words.size()];
 }
 
-/// @brief Regurgitates based on some input, using the chain's default soft/hard limits
-/// @param input The input to regurgitate from
-/// @return The resultant string (includes the input)
+/// @brief Regurgitates based on some input, using the given default soft/hard limits
+/// @param input The input to regurgitate from, and to copy to
+/// @return Whether any information was added, so false if no words were in our vocabulary
 bool NChain::Regurgitate(std::string* input) {
     return Regurgitate(input, default_soft_limit, default_hard_limit, nullptr);
 }
 
 /// @brief Regurgitates based on some input, using the given default soft/hard limits
-/// @param input The input to regurgitate from
+/// @param input The input to regurgitate from, and to copy to
 /// @param soft_limit The soft limit of this output - once the soft limit is reached, if a word ends in a full stop, the chain will end
 /// @param hard_limit The hard limit of this output - once the hard limit is reached, the chain stops
-/// @return The resultant string (includes the input)
+/// @return Whether any information was added, so false if no words were in our vocabulary
 bool NChain::Regurgitate(std::string* input, int soft_limit, int hard_limit) {
     return Regurgitate(input, soft_limit, hard_limit, nullptr);
 }
@@ -254,7 +254,7 @@ bool NChain::Regurgitate(std::string* input, int soft_limit, int hard_limit, int
 
     int i = InitialiseWordBuffer(input, &word_buffer);
 
-    if(word_buffer.size() == 0 && *input != "")
+    if(word_buffer.size() == 0 && i > 0) // if theres still some input there, dont jumble it
         return false;
 
     if(debug) {
