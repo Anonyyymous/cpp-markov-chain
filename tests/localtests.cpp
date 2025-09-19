@@ -12,10 +12,6 @@ bool is_port_avaliable(int port) {
     try {
         io_context context;
         ip::tcp::acceptor acceptor(context, ip::tcp::endpoint(ip::tcp::v4(), port));
-        // if (ec == boost::asio::error::connection_refused) {
-        //     std::cout << "\n\nhhhh\n\n" << std::endl;
-        // }
-        // return ec == boost::asio::error::connection_refused;
         acceptor.close();
         return true;
     } catch (std::exception& e) {

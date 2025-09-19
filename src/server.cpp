@@ -9,7 +9,7 @@ Server::Server(int port, bool debug) : port(port), debug(debug) {
         std::cout << "server created at port " << port << std::endl;
 }
 
-/// @brief Starts a server listening on the given port, that will simply receive 1 connection (printing it if debug is enabled), then close
+/// @brief Starts a server listening on the given port, that will simply return hello world to any TCP connections
 /// @return An int error code
 int Server::StartServer() {
     try {
