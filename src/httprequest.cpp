@@ -120,7 +120,7 @@ std::string request_type_to_string(RequestType type) {
         case PATCH: return "PATCH";
         default:
             std::cerr << "cannot properly format current request" << std::endl;
-            break;
+            return "BAD";
     }
 }
 

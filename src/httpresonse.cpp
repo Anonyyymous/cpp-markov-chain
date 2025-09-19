@@ -18,7 +18,7 @@ HTTPResponse::HTTPResponse(int status_code, std::map<std::string, std::string> h
     contents += result;
 }
 
-HTTPResponse HTTPResponse::ReplyWith(int statuc_code = 200) {
+HTTPResponse HTTPResponse::ReplyWith(int statuc_code) {
     std::map<std::string, std::string> headers;
 
     headers["content-type"] = "text/html";
