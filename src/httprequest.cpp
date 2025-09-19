@@ -9,12 +9,8 @@ HTTPRequest::HTTPRequest(RequestType request_type, const char* request_line) : r
     std::cout << "creating http request" << std::endl << std::endl << std::endl;
 }
 
-/// @brief Creates a new HTTPRequest object from an appropriately formatted string
-/// @param contents_ The string to parse
-HTTPRequest::HTTPRequest(const char* contents_) {
-    std::string contents(contents_);
-
-    int i = 0;// = ParseRequestType(contents[0]);
+HTTPRequest::HTTPRequest(std::string contents) {
+    int i = 0;
     while(contents[i++] != ' ');
     requestType = string_to_request_type(contents[0], contents[1]);
     int length = 0;
@@ -30,23 +26,6 @@ HTTPRequest::HTTPRequest(const char* contents_) {
     ParseHeadersAndBody(contents, i + length);
     ParseParams(param_start);
     std::cout << std::endl;
-}
-
-/// @brief Returns the index at which to start analysing the request from, and parses the requestType of this request, based on the first character
-/// @param first_char 
-/// @return The number of characters to progress the index by
-int HTTPRequest::ParseRequestType(char first_char) {
-    switch (first_char) {
-        case 'G': {
-            requestType = GET;
-            return 4;
-        } case 'P': {
-            requestType = POST;
-            return 5;
-        }
-    }
-
-    return 0;
 }
 
 /// @brief Parses the string of HTTP parameters into a std::map
@@ -142,7 +121,17 @@ std::string request_type_to_string(RequestType type) {
 RequestType string_to_request_type(char fst, char snd) {
     switch (fst) {
         case 'G': return GET;
-        case 'P': return (snd == 'U') ? PUT : POST;
+        case 'P':
+            if (snd == 'O')
+                return POST;
+            else if (snd == 'U')
+                return PUT;
+            return PATCH;
+
+        case 'H': return HEAD;
+        case 'C': return CONNECT;
+        case 'O': return OPTIONS;
+        case 'T': return TRACE;
         default: return DELETE;
     }
 }

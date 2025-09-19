@@ -1,7 +1,9 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include<client.hpp>
+#include<boost/asio.hpp>
+#include<iostream>
+using namespace boost::asio;
 
 class Server {
     public:
@@ -11,7 +13,6 @@ class Server {
         int StartServer();
 
     protected:
-        int serverSocket;
         bool debug;
 };
 

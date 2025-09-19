@@ -2,32 +2,30 @@
 #include<iostream>
 #include<nchain.hpp>
 #include<httpserver.hpp>
-#include<unistd.h>
 #include<signal.h>
 
 
-/// @brief Checks whether the given port is taken
+/// @brief Checks whether the given port is taken, by creating a socket and trying to connect to that port
 /// @param port The port to check for
 /// @return True if the port is free, false otherwise
-bool test_port(int port) {
-    int file = socket(AF_INET, SOCK_STREAM, 0);
-    struct sockaddr_in addr;
+bool is_port_avaliable(int port) {
+    try {
+        io_context context;
+        ip::tcp::acceptor acceptor(context, ip::tcp::endpoint(ip::tcp::v4(), port));
+        // if (ec == boost::asio::error::connection_refused) {
+        //     std::cout << "\n\nhhhh\n\n" << std::endl;
+        // }
+        // return ec == boost::asio::error::connection_refused;
+        acceptor.close();
+        return true;
+    } catch (std::exception& e) {
+        std::cout << e.what() << std::endl;
 
-    if(file < 0) {
-        std::cout << "error occured trying to create the test socket" << std::endl;
         return false;
     }
-
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = INADDR_ANY;
-
-    int res = bind(file, (sockaddr*)&addr, sizeof(addr));
-    close(file);
-    return res >= 0;
 }
 
-int main() {
+int main(int argc, char** argv) {
     std::cout << "Starting tests - please make sure the server.conf in the tests directory uses port 6678 for testing" << std::endl;
 
     NChain* chain = new NChain(2, 4, 5);
@@ -56,8 +54,11 @@ int main() {
     std::cout << std::endl << "--Base tests complete--" << std::endl << std::endl;
     delete chain;
 
-    if(!test_port(6678)) {
-        std::cout << "Couldnt get port 6678, another program may be using it. If you used that port recently, give it some time and try again." << std::endl;
+
+    const int port = 6678;
+
+    if(!is_port_avaliable(port)) {
+        std::cerr << "Couldnt get port 6678, another program may be using it. If you used that port recently, give it some time and try again." << std::endl;
         return -1;
     }
 

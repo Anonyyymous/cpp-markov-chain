@@ -59,9 +59,9 @@ std::string convert_regurgitation_to_json(std::string result, int status_code, b
 /// @param param_name The name of the parameter to parse
 /// @param value A pointer to the variable to be written to
 /// @return True if the pass was a success/the parameter wasnt included in the first place, or false if parsing failed
-bool can_parse_request_param(HTTPRequest request, std::string param_name, int* value) {
+bool can_parse_request_param(HTTPRequest* request, std::string param_name, int* value) {
     try {
-        *value = std::stoi(request.params.at(param_name));
+        *value = std::stoi(request->params.at(param_name));
         return true;
     } catch (std::invalid_argument const& e){
         // couldnt convert from string
@@ -76,7 +76,7 @@ bool can_parse_request_param(HTTPRequest request, std::string param_name, int* v
 /// @param request The HTTPRequest to be parsed
 /// @param debug Whether or not to display information to the terminal
 /// @return A HTTPResponse containing either an error code/message, or the result of some chain regurgitation
-HTTPResponse process_request(HTTPRequest request, bool debug) {
+HTTPResponse process_request(HTTPRequest* request, bool debug) {
     std::map<std::string, std::string> headers;
     headers["Accept-Ranges"] = "bytes";
 
@@ -91,13 +91,13 @@ HTTPResponse process_request(HTTPRequest request, bool debug) {
         std::cout << "---------------------------------------------------\nHeaders" << std::endl;
         std::cout << "(for some reason, the first character of these is removed)" << std::endl;
         
-        for(auto it = request.headers.begin(); it != request.headers.end(); ++it) {
+        for(auto it = request->headers.begin(); it != request->headers.end(); ++it) {
             std::cout << it->first << ": '" << it->second << "'" << std::endl;
         }
 
         std::cout << "---------------------------------------------------\nParams" << std::endl;
 
-        for(auto it = request.params.begin(); it != request.params.end(); ++it) {
+        for(auto it = request->params.begin(); it != request->params.end(); ++it) {
             std::cout << it->first << ": '" << it->second << "'" << std::endl;
         }
     }
@@ -109,13 +109,13 @@ HTTPResponse process_request(HTTPRequest request, bool debug) {
         std::cout << std::endl;
 
     // dont want to use .at(), as [] also initialises new values, so these will both default to ""
-    std::string target_model = model_path + request.params["model"];
-    std::string prompt = request.params["prompt"];
+    std::string target_model = model_path + request->params["model"];
+    std::string prompt = request->params["prompt"];
     
     // process query -----------------------------------------------
     // check it is a valid file (all models should end with .jkc)
     if(!(std::filesystem::exists(target_model) && std::filesystem::path(target_model).extension() == ".jkc")) {
-        result = "Model '" + request.params["model"] + "' doesn't exist."; // 404 = resource doesnt exist
+        result = "Model '" + request->params["model"] + "' doesn't exist."; // 404 = resource doesnt exist
         status_code = 404;
     } else {
         NChain* model; // initialise so we can load it
@@ -152,6 +152,7 @@ HTTPResponse process_request(HTTPRequest request, bool debug) {
             }
         }
     }
+    free(request);
     return HTTPResponse(status_code, headers, convert_to_json(result, status_code));
 }
 

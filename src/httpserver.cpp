@@ -4,92 +4,71 @@
 /// @param port The port to open the server on later
 /// @param consumer A function that takes in a HTTRequest and returns a HTTPResponse
 /// @param debug Whether or not the display information to the terminal
-HTTPServer::HTTPServer(int port, HTTPResponse (*consumer)(HTTPRequest, bool), bool debug) : Server(port, debug), consumer(consumer) {
+HTTPServer::HTTPServer(int port, HTTPResponse (*consumer)(HTTPRequest*, bool), bool debug) : Server(port, debug), consumer(consumer) {
     std::cout << "initialising http server with port " << port << std::endl;
 }
 
 /// @brief Starts the HTTPServer, and once it receives a request, passes it into 'consumer'
 /// @return 0 if the server closes successfully, -1 otherwise
 int HTTPServer::StartServer() {
-    // explanations will be in original server.StartServer()
-
-    std::cout << "starting http server" << std::endl;
-    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-
-    struct sockaddr_in server_address;
-
-    if(serverSocket < 0) {
-        std::cout << "error occured trying to create the server socket" << std::endl;
-        return serverSocket;
-    }
-
-    server_address.sin_family = AF_INET; 
-    server_address.sin_port = htons(port);
-    server_address.sin_addr.s_addr = INADDR_ANY;
-    
-    if(debug)
-        std::cout << "bound" << std::endl;
-    int res = bind(serverSocket, (sockaddr*)&server_address, sizeof(server_address));
-    if(res < 0) {
-        std::cout << "couldnt connect httpserver to port " << port << std::endl;
-        close(serverSocket);
-        return -1;
-    }
-
-    if(debug)
-        std::cout << "listening" << std::endl;
-    listen(serverSocket, 256); // make space for 256 requestss
-
-
+    std::cout << "starting http server, now using boost/asio" << std::endl;
     try {
+        io_context context;
+        ip::tcp::acceptor acceptor(context, ip::tcp::endpoint(ip::tcp::v4(), port));
+        acceptor.set_option(socket_base::reuse_address(false)); // stops another program from taking the port while we're waiting for the next request
+
         while(true) {
-            char buffer[4096] = {0};
+            constexpr unsigned int read_size = 512;
+
+            std::array<char, read_size> bfr;
+            ip::tcp::socket socket(context);
             if(debug)
                 std::cout << "waiting for connections" << std::endl;
-            int client_socket = accept(serverSocket, nullptr, nullptr);
+            acceptor.accept(socket);
 
-            if(client_socket < 0) {
-                std::cout << "bad accept" << std::endl;
-                close(client_socket);
-                continue;
-            }
+            std::string str;
 
-            int res = read(client_socket, buffer, sizeof(buffer));
-            if(client_socket < 0) {
-                close(client_socket);
-                std::cout << "bad read: " << res << " -> " << buffer << std::endl;
-                continue;
+            size_t byte_count = read_size;
+
+            while (byte_count == read_size) {
+                boost::system::error_code ec;
+                byte_count = socket.read_some(buffer(bfr), ec);
+
+                if (ec == error::eof)
+                    break;
+                else if (ec) 
+                    throw boost::system::system_error(ec);
+                str.append(bfr.data(), byte_count);
             }
             
-            if(debug)
-                std::cout << buffer << std::endl;
+            // if a client connects to and instantly leaves (like we do to test a port's validity)
+            if (str.size() == 0)
+                continue;
 
-            HTTPRequest req(buffer);
+            if(debug)
+                std::cout << str << std::endl;
+            
+            HTTPRequest* req = new HTTPRequest(str);
             if(debug)
                 std::cout << "request constructed" << std::endl;
             HTTPResponse response = consumer(req, debug);
             if(debug)
                 std::cout << "response constructed" << std::endl; 
+            boost::system::error_code ec;
             
-            res = send(client_socket, response.contents.c_str(), response.contents.size(), 0);
-
-            if(debug)
-                std::cout << "result of sending: " << res << std::endl;
-            if(res < 0) {
-                std::cout << "sent bad message: " << res << ":" << buffer << std::endl;
-                close(client_socket);
-                continue;
-            }
-
-            close(client_socket);
+            write(socket, buffer(response.contents), ec);
             if(debug)
                 std::cout << "client closed" << std::endl;
 
         }
-    } catch (...) {
-        std::cout << "An error occured while the server was receiving messages" << std::endl;
+    } catch (const boost::system::system_error& e) {
+        if (e.code() == boost::asio::error::address_in_use)
+            std::cout << "address already in use" << std::endl;
+        else
+            std::cout << e.what() << std::endl;
+    } catch (std::exception& e) {
+        std::cout << "An error occured while the server was receiving messages: " << e.what() << std::endl;
     }
-    close(serverSocket);
 
     return 0;
 }
