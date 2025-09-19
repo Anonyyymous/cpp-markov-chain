@@ -6,8 +6,8 @@
 /// @param result The body of the response
 HTTPResponse::HTTPResponse(int status_code, std::map<std::string, std::string> headers, std::string result) {
     // handle status line
-    contents = "HTTP/1.1 " + std::to_string(status_code) + GetStatusString(status_code) + "\n";
-
+    contents = "HTTP/1.1 " + std::to_string(status_code) + GetStatusString(status_code) + "\r\n";
+    headers["content-length"] = std::to_string(result.size());
     // handle headers
     for(const auto &pair : headers) {
         contents += pair.first + ": " + pair.second + "\n";
@@ -16,6 +16,14 @@ HTTPResponse::HTTPResponse(int status_code, std::map<std::string, std::string> h
 
     // handle body
     contents += result;
+}
+
+HTTPResponse HTTPResponse::ReplyWith(int statuc_code = 200) {
+    std::map<std::string, std::string> headers;
+
+    headers["content-type"] = "text/html";
+
+    return HTTPResponse(statuc_code, headers, "");
 }
 
 /// @brief Returns a string based on the status code, for the first line of the response

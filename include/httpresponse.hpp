@@ -9,6 +9,7 @@ class HTTPResponse {
     public:
         std::string contents;
         HTTPResponse(int status_code, std::map<std::string, std::string> headers, std::string result);
+        static HTTPResponse ReplyWith(int status_code = 200);
     private:
         std::string GetStatusString(int status_code);
 

@@ -52,7 +52,7 @@ I was originally inspired to make something like this after reading about Nepent
 
 This was also a project I aimed to do with minimal ai assistance (the occasional pointer towards c++ syntax), and while using git in the CLI. This is why an embarassing number of the commits are along the lines of 'forgot x'. Setting up github actions also took some time, with the reason for most of the errors simply being that some of the files it was trying to transfer had been .gitignore'd, so weren't there. Hopefully, lesson learned.
 
-The github actions file is originally courtesy of the University of Warwick Computing Society, and I am also using their services to host an example container - examplejarkov*.containers.uwcs.co.uk/?model=example.jkc, trained on this file (except this last bit, unless I decide to retrain it (unlikely)).
+The github actions file is originally courtesy of the University of Warwick Computing Society, and I am also using their services to host an example container - https://examplejarkov.containers.uwcs.co.uk/?model=example.jkc, trained on this file (except this last bit, unless I decide to retrain it (unlikely)).
 
 \*A combination of my name + markov, it was not intended to sound explicit.
 

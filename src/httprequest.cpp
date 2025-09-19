@@ -10,22 +10,26 @@ HTTPRequest::HTTPRequest(RequestType request_type, const char* request_line) : r
 }
 
 HTTPRequest::HTTPRequest(std::string contents) {
-    int i = 0;
-    while(contents[i++] != ' ');
-    requestType = string_to_request_type(contents[0], contents[1]);
-    int length = 0;
-    while(contents[i + length++] != '\n');
+    try {
+        int i = 0;
+        while(contents[i++] != ' ');
+        requestType = string_to_request_type(contents[0], contents[1]);
+        int length = 0;
+        while(contents[i + length++] != '\n');
 
-    // will now be at the end of the line
-    // since this line ends with HTTP/1.1, the resource will be the rest of the line
-    requestLine = contents.substr(i, length-11); // may need adjusting
+        // will now be at the end of the line
+        // since this line ends with HTTP/1.1, the resource will be the rest of the line
+        requestLine = contents.substr(i, length-11); // may need adjusting
 
-    int param_start = requestLine.find("/?")+1;
-    resource = contents.substr(i, param_start);
+        int param_start = requestLine.find("/?")+1;
+        resource = contents.substr(i, param_start);
 
-    ParseHeadersAndBody(contents, i + length);
-    ParseParams(param_start);
-    std::cout << std::endl;
+        ParseHeadersAndBody(contents, i + length);
+        ParseParams(param_start);
+    } catch (std::exception& e) {
+        std::cerr << "http request was incorrectly formatted" << std::endl;
+        requestType = BAD;
+    }
 }
 
 /// @brief Parses the string of HTTP parameters into a std::map
@@ -109,8 +113,14 @@ std::string request_type_to_string(RequestType type) {
         case POST: return "POST";
         case PUT: return "PUT";
         case DELETE: return "DELETE";
-
-        default: return "GET";
+        case HEAD: return "HEAD";
+        case CONNECT: return "CONNECT";
+        case OPTIONS: return "OPTIONS";
+        case TRACE: return "TRACE";
+        case PATCH: return "PATCH";
+        default:
+            std::cerr << "cannot properly format current request" << std::endl;
+            break;
     }
 }
 

@@ -4,7 +4,6 @@
 #include<string>
 #include<map>
 
-// TODO replace with enum
 enum RequestType {
     GET,
     POST,
@@ -14,7 +13,8 @@ enum RequestType {
     CONNECT,
     OPTIONS,
     TRACE,
-    PATCH
+    PATCH,
+    BAD
 };
 
 class HTTPRequest {

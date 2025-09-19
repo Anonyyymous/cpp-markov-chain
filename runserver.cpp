@@ -152,7 +152,7 @@ HTTPResponse process_request(HTTPRequest* request, bool debug) {
             }
         }
     }
-    free(request);
+    delete request;
     return HTTPResponse(status_code, headers, convert_to_json(result, status_code));
 }
 
